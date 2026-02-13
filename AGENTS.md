@@ -1,13 +1,19 @@
 # AGENTS.md — SongTipper (Flutter + Laravel)
 
-You are an AI coding agent working inside this repo:
+Songtipper is split into multiple repositories:
 
-```
-songtipper/
-  _shared/      # API contracts, schemas, shared docs (source of truth)
-  web/          # Laravel API + web routes (audience pages, performer signup/login)
-  mobile_app/   # Flutter app (performer-side)
-```
+- `songtipper/web/`: Laravel API + web routes (audience pages, performer signup/login)
+- `songtipper/mobile_app/`: Flutter app (performer-side)
+
+Songtipper manages shared information within the root repository (songtipper) here:
+
+- `songtipper/_shared/`: API contracts, schemas, shared docs (source of truth)
+
+## Repository remotes
+
+- Monorepo: `git@github.com:gnarhard/songtipper-mono.git`
+- Web: `git@github.com:gnarhard/songtipper_web.git`
+- Mobile App: `git@github.com:gnarhard/songtipper_mobile_app.git`
 
 _You MUST work in a git worktree, NEVER in the main repository._
 
