@@ -21,7 +21,7 @@ _You MUST work in a git worktree, NEVER in the main repository._
 - After creating a worktree, you MUST `cd` into it before any work
 - If worktree creation fails, output ERROR signal and terminate - do NOT fall back to main repo
 - The main `songtipper` directory must remain untouched by agents
-- Once finished, create a PR for each repo you modified (web and mobile app) to merge into main
+- Once finished, create a PR for each repo you modified (web and mobile app) to merge into main and share the PR link with the developer
 
 ## Ignore (do not read or edit):
 
