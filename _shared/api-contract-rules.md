@@ -759,6 +759,12 @@ Queue-only flow:
 - If `items[index][title|artist]` matches an existing `songs` row, backend
   imports chart immediately and links `project_songs` without Gemini
   enrichment.
+- For immediate imports, chart storage is idempotent per
+  `(owner_user_id, project_id, song_id)`:
+  - If source PDF bytes match the existing chart source, backend reuses the
+    existing chart row.
+  - If source PDF bytes differ, backend replaces the existing chart source PDF
+    in place and clears stale render records.
 - Otherwise backend stores chart and queues asynchronous song identification
   from chart image content.
 
