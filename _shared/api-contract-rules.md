@@ -732,11 +732,15 @@ Remove a song from repertoire.
 Bulk import songs from PDF filenames.
 
 **Request:** `multipart/form-data`
-- `files[]`: PDF files (`1..50`, max 10MB each)
+- `files[]`: PDF files (`1..20`, max 10MB each)
 - `items[index][title]`: optional song title hint for file at `index`
 - `items[index][artist]`: optional artist hint for file at `index`
 - `title`: optional string (deprecated, ignored)
 - `artist`: optional string (deprecated, ignored)
+
+Chunking requirement:
+- Clients must split selections larger than 20 files into multiple requests.
+- The same request/response contract applies to each chunk.
 
 Filename parsing:
 - Default filename base format: `Song Title - Artist.pdf`
@@ -768,12 +772,21 @@ Queue-only flow:
 - Otherwise backend stores chart and queues asynchronous song identification
   from chart image content.
 
+Duplicate detection (server-side):
+- The client should still upload charts even when the song already exists in project repertoire.
+- Backend returns `action = "duplicate"` only when all of the following are true:
+  - `project_songs` already contains `(project_id, song_id)`.
+  - At least one existing chart already exists for `(owner_user_id, project_id, song_id)`.
+  - The uploaded chart PDF is byte-identical to an existing chart PDF.
+- If any of these are false, backend treats the upload as non-duplicate.
+
 **Response (200):**
 ```json
 {
   "message": "Imported 1 song(s), Queued 1 chart(s) for identification.",
   "imported": 1,
   "queued": 1,
+  "duplicates": 0,
   "songs": [
     {
       "filename": "Wonderwall - Oasis.pdf",
@@ -789,6 +802,13 @@ Queue-only flow:
   ]
 }
 ```
+
+`songs[*].action` is one of:
+- `imported`: existing song match, chart stored immediately
+- `queued`: chart queued for Gemini identification
+- `duplicate`: matching chart already exists (byte-identical), upload skipped
+
+For duplicate results, backend may include `duplicate_of` for display.
 
 ---
 
