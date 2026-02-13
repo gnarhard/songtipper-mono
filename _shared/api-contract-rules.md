@@ -564,6 +564,45 @@ When a brand-new song is created via `title` + `artist`, provided `energy_level`
 
 ---
 
+### GET `/v1/me/projects/{projectId}/repertoire/metadata`
+
+Fetch metadata suggestion for a song title + artist.
+
+Lookup order:
+1. Check `songs` table by normalized title/artist key.
+2. If no metadata exists in `songs`, query Gemini using title + artist prompt.
+
+**Query Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `title` | string | Required song title |
+| `artist` | string | Required artist name |
+
+**Response (200):**
+```json
+{
+  "data": {
+    "source": "songs_table",
+    "metadata": {
+      "energy_level": "high",
+      "era": "90s",
+      "genre": "Rock",
+      "original_musical_key": "F#",
+      "duration_in_seconds": 259
+    }
+  }
+}
+```
+
+`source` values:
+- `songs_table`: metadata came from existing DB song record.
+- `gemini`: metadata came from Gemini fallback.
+- `none`: no metadata found.
+
+When `source = none`, all `metadata` fields are returned as `null`.
+
+---
+
 ### PUT `/v1/me/projects/{projectId}/repertoire/{projectSongId}`
 
 Update a repertoire song's metadata.
@@ -694,6 +733,8 @@ Bulk import songs from PDF filenames.
 
 **Request:** `multipart/form-data`
 - `files[]`: PDF files (`1..50`, max 10MB each)
+- `items[index][title]`: optional song title hint for file at `index`
+- `items[index][artist]`: optional artist hint for file at `index`
 - `title`: optional string (deprecated, ignored)
 - `artist`: optional string (deprecated, ignored)
 
@@ -715,22 +756,29 @@ Filename parsing:
   - `Wonderwall - Oasis -- key=F#m -- original_key=Gm -- tuning=Drop D -- capo=2 -- energy=high -- era=90s -- genre=Rock -- duration=240.pdf`
 
 Queue-only flow:
-- Backend always stores uploaded charts and queues asynchronous song
-  identification from chart image content.
-- Song / project repertoire creation happens asynchronously after
-  identification; bulk-import does not synchronously create songs.
+- If `items[index][title|artist]` matches an existing `songs` row, backend
+  imports chart immediately and links `project_songs` without Gemini
+  enrichment.
+- Otherwise backend stores chart and queues asynchronous song identification
+  from chart image content.
 
 **Response (200):**
 ```json
 {
-  "message": "Queued 2 chart(s) for identification.",
-  "imported": 0,
-  "queued": 2,
+  "message": "Imported 1 song(s), Queued 1 chart(s) for identification.",
+  "imported": 1,
+  "queued": 1,
   "songs": [
     {
       "filename": "Wonderwall - Oasis.pdf",
+      "action": "imported",
+      "chart_id": 55,
+      "song_id": 12
+    },
+    {
+      "filename": "Unknown Chart.pdf",
       "action": "queued",
-      "chart_id": 55
+      "chart_id": 56
     }
   ]
 }
