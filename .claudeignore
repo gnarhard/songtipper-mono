@@ -1,0 +1,3 @@
+  web/.env
+  web/!.env.testing
+  web/!.env.example

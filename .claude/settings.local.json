@@ -1,0 +1,73 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__laravel-boost__search-docs",
+      "mcp__laravel-boost__application-info",
+      "mcp__laravel-boost__database-schema",
+      "Bash(composer require:*)",
+      "Bash(npm install:*)",
+      "Bash(php artisan install:api:*)",
+      "Bash(php artisan:*)",
+      "Bash(vendor/bin/pint:*)",
+      "mcp__laravel-boost__database-query",
+      "Bash(find:*)",
+      "Bash(npm run build:*)",
+      "mcp__laravel-boost__get-config",
+      "mcp__laravel-boost__list-routes",
+      "mcp__laravel-boost__get-absolute-url",
+      "Bash(wc:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(echo:*)",
+      "mcp__laravel-boost__last-error",
+      "mcp__laravel-boost__browser-logs",
+      "mcp__laravel-boost__list-available-env-vars",
+      "mcp__laravel-boost__read-log-entries",
+      "Bash(php:*)",
+      "Bash(pecl list:*)",
+      "Bash(brew services:*)",
+      "mcp__laravel-boost__tinker",
+      "Bash(brew install:*)",
+      "Bash(gs:*)",
+      "mcp__dart__pub_dev_search",
+      "WebSearch",
+      "WebFetch(domain:pub.dev)",
+      "WebFetch(domain:docs.hive.isar.community)",
+      "Bash(flutter pub get:*)",
+      "Bash(dart run build_runner build:*)",
+      "mcp__dart__analyze_files",
+      "mcp__dart__run_tests",
+      "mcp__dart__dart_fix",
+      "mcp__dart__dart_format",
+      "Bash(flutter analyze:*)",
+      "Bash(grep:*)",
+      "Bash(npm view:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npx get-shit-done-cc:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(flutter test:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:musicbrainz.org)",
+      "Bash(flutter pub add:*)",
+      "Bash(ls:*)",
+      "Bash(tee:*)",
+      "WebFetch(domain:discuss.ai.google.dev)",
+      "Bash(git log:*)",
+      "Bash(dart analyze:*)"
+    ],
+    "read": {
+      "deny": [
+        "Read(**/.env*)",
+        "Read(**/*.pem)",
+        "Read(**/*.key)",
+        "Read(**/secrets/**)",
+        "Read(**/credentials/**)",
+        "Read(**/.aws/**)",
+        "Read(**/.ssh/**)"
+      ]
+    }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "laravel-boost"
+  ]
+}

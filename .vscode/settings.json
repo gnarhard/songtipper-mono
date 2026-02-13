@@ -1,0 +1,14 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "./vendor/bin/pint": true
+  },
+  "search.useIgnoreFiles": false,
+  "search.useParentIgnoreFiles": false,
+  "search.useGlobalIgnoreFiles": false,
+  "git.scanRepositories": ["web", "game", "art"],
+  "git.detectSubmodules": true,
+  "git.ignoredRepositories": [],
+  "scm.alwaysShowRepositories": true,
+  "scm.repositories.selectionMode": "multiple",
+  "scm.repositories.visible": 20
+}
