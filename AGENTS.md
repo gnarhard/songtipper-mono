@@ -17,6 +17,11 @@ _You MUST work in a git worktree, NEVER in the main repository._
 - The main `songtipper` directory must remain untouched by agents
 - Once finished, create a PR for each repo you modified (web and mobile app) to merge into main
 
+## Ignore (do not read or edit):
+
+- `web/.env`
+- `**/*.p8` (App Store private keys)
+
 ## Before you start, read the rules for each repo:
 
 ```
