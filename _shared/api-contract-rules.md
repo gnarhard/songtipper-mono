@@ -287,6 +287,58 @@ List projects the authenticated user has access to.
 
 ---
 
+### POST `/v1/me/projects`
+
+Create a new project for the authenticated user.
+
+**Request:**
+```json
+{
+  "name": "Friday Jazz Night"
+}
+```
+
+**Validation Rules:**
+- `name`: required, string, max 255 chars, cannot be blank/whitespace-only
+
+**Response (201):**
+```json
+{
+  "message": "Project created successfully.",
+  "project": {
+    "id": 2,
+    "name": "Friday Jazz Night",
+    "slug": "friday-jazz-night",
+    "owner_user_id": 1,
+    "performer_info_url": null,
+    "performer_profile_image_url": null,
+    "min_tip_cents": 500,
+    "is_accepting_requests": true,
+    "is_accepting_original_requests": true,
+    "owner": {
+      "id": 1,
+      "name": "Mike Johnson"
+    }
+  }
+}
+```
+
+**Response (422):**
+```json
+{
+  "message": "The name field is required.",
+  "errors": {
+    "name": [
+      "The name field is required."
+    ]
+  }
+}
+```
+
+**Response (401):** Unauthenticated.
+
+---
+
 ### PATCH `/v1/me/projects/{projectId}`
 
 Update project settings. Only the project owner can update a project.
