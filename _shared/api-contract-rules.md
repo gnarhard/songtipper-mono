@@ -732,11 +732,15 @@ Remove a song from repertoire.
 Bulk import songs from PDF filenames.
 
 **Request:** `multipart/form-data`
-- `files[]`: PDF files (`1..50`, max 10MB each)
+- `files[]`: PDF files (`1..20`, max 10MB each)
 - `items[index][title]`: optional song title hint for file at `index`
 - `items[index][artist]`: optional artist hint for file at `index`
 - `title`: optional string (deprecated, ignored)
 - `artist`: optional string (deprecated, ignored)
+
+Chunking requirement:
+- Clients must split selections larger than 20 files into multiple requests.
+- The same request/response contract applies to each chunk.
 
 Filename parsing:
 - Default filename base format: `Song Title - Artist.pdf`
