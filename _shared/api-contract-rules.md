@@ -477,6 +477,69 @@ Response includes `ETag` header. Queue is ordered by `tip_amount_cents DESC`, th
 
 ---
 
+### POST `/v1/me/projects/{projectId}/queue`
+
+Manually add an item to the active queue as an authenticated performer/project member.
+
+**Request (custom):**
+```json
+{
+  "type": "custom",
+  "custom_title": "Crowd Favorite Mashup",
+  "custom_artist": "Custom Request",
+  "note": "Mash two choruses if possible"
+}
+```
+
+**Request (song from repertoire):**
+```json
+{
+  "type": "repertoire_song",
+  "song_id": 123,
+  "note": "Acoustic version"
+}
+```
+
+`song_id` must belong to the selected `{projectId}` repertoire.
+
+**Request (original):**
+```json
+{
+  "type": "original"
+}
+```
+
+Original requests are only allowed when project setting `is_accepting_original_requests` is `true`.
+
+**Response (201):**
+```json
+{
+  "message": "Queue item added.",
+  "request": {
+    "id": 42,
+    "song": {
+      "id": 1,
+      "title": "Crowd Favorite Mashup",
+      "artist": "Custom Request"
+    },
+    "tip_amount_cents": 0,
+    "tip_amount_dollars": "0.00",
+    "status": "active",
+    "note": "Mash two choruses if possible",
+    "played_at": null,
+    "created_at": "2026-02-14T17:10:00+00:00"
+  }
+}
+```
+
+**Response (404):** User does not have access to the project.
+
+**Response (422):**
+- Validation failure (invalid type, missing `custom_title`, invalid `song_id`, etc.)
+- `{"message":"This project is not currently accepting original requests."}` when `type = "original"` and originals are disabled.
+
+---
+
 ### GET `/v1/me/projects/{projectId}/requests/history`
 
 Get played requests history (paginated).
