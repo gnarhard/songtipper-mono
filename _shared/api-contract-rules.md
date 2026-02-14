@@ -62,6 +62,7 @@ Authenticate and receive access token.
         "min_tip_cents": 500,
         "is_accepting_requests": true,
         "is_accepting_original_requests": true,
+        "show_persistent_queue_strip": true,
         "owner_user_id": 1
       }
     ]
@@ -135,6 +136,7 @@ Get public repertoire for a project.
       "min_tip_cents": 500,
       "is_accepting_requests": true,
       "is_accepting_original_requests": true,
+      "show_persistent_queue_strip": true,
       "owner": {
         "id": 1,
         "name": "Mike Johnson"
@@ -276,6 +278,7 @@ List projects the authenticated user has access to.
       "min_tip_cents": 500,
       "is_accepting_requests": true,
       "is_accepting_original_requests": true,
+      "show_persistent_queue_strip": true,
       "owner": {
         "id": 1,
         "name": "Mike Johnson"
@@ -315,6 +318,7 @@ Create a new project for the authenticated user.
     "min_tip_cents": 500,
     "is_accepting_requests": true,
     "is_accepting_original_requests": true,
+    "show_persistent_queue_strip": true,
     "owner": {
       "id": 1,
       "name": "Mike Johnson"
@@ -351,6 +355,7 @@ Update project settings. Only the project owner can update a project.
   "min_tip_cents": 1000,
   "is_accepting_requests": false,
   "is_accepting_original_requests": true,
+  "show_persistent_queue_strip": true,
   "remove_performer_profile_image": false
 }
 ```
@@ -361,6 +366,7 @@ Update project settings. Only the project owner can update a project.
 - `min_tip_cents`: optional, integer, min 0
 - `is_accepting_requests`: optional, boolean
 - `is_accepting_original_requests`: optional, boolean
+- `show_persistent_queue_strip`: optional, boolean (defaults to `true` when omitted)
 - `remove_performer_profile_image`: optional, boolean
 
 All fields are optional - you can update one or more fields in a single request.
@@ -379,6 +385,7 @@ All fields are optional - you can update one or more fields in a single request.
     "min_tip_cents": 1000,
     "is_accepting_requests": false,
     "is_accepting_original_requests": true,
+    "show_persistent_queue_strip": true,
     "owner": {
       "id": 1,
       "name": "Mike Johnson"
@@ -418,7 +425,8 @@ Upload or replace the performer profile image for a project. Owner-only.
     "performer_profile_image_url": "https://example.com/storage/performers/1/profile.png",
     "min_tip_cents": 500,
     "is_accepting_requests": true,
-    "is_accepting_original_requests": true
+    "is_accepting_original_requests": true,
+    "show_persistent_queue_strip": true
   }
 }
 ```
