@@ -137,6 +137,13 @@ Get public repertoire for a project.
       "is_accepting_requests": true,
       "is_accepting_original_requests": true,
       "show_persistent_queue_strip": true,
+      "chart_viewport_prefs": {
+        "10:0": {
+          "zoom_scale": 1.6,
+          "offset_dx": 42.5,
+          "offset_dy": -18.25
+        }
+      },
       "owner": {
         "id": 1,
         "name": "Mike Johnson"
@@ -319,6 +326,7 @@ Create a new project for the authenticated user.
     "is_accepting_requests": true,
     "is_accepting_original_requests": true,
     "show_persistent_queue_strip": true,
+    "chart_viewport_prefs": null,
     "owner": {
       "id": 1,
       "name": "Mike Johnson"
@@ -356,6 +364,13 @@ Update project settings. Only the project owner can update a project.
   "is_accepting_requests": false,
   "is_accepting_original_requests": true,
   "show_persistent_queue_strip": true,
+  "chart_viewport_prefs": {
+    "10:0": {
+      "zoom_scale": 1.6,
+      "offset_dx": 42.5,
+      "offset_dy": -18.25
+    }
+  },
   "remove_performer_profile_image": false
 }
 ```
@@ -367,6 +382,10 @@ Update project settings. Only the project owner can update a project.
 - `is_accepting_requests`: optional, boolean
 - `is_accepting_original_requests`: optional, boolean
 - `show_persistent_queue_strip`: optional, boolean (defaults to `true` when omitted)
+- `chart_viewport_prefs`: optional object keyed by `{chart_id}:{page_number}`, value object with:
+  - `zoom_scale`: required numeric (`0.5` to `4`)
+  - `offset_dx`: required numeric
+  - `offset_dy`: required numeric
 - `remove_performer_profile_image`: optional, boolean
 
 All fields are optional - you can update one or more fields in a single request.
@@ -386,6 +405,13 @@ All fields are optional - you can update one or more fields in a single request.
     "is_accepting_requests": false,
     "is_accepting_original_requests": true,
     "show_persistent_queue_strip": true,
+    "chart_viewport_prefs": {
+      "10:0": {
+        "zoom_scale": 1.6,
+        "offset_dx": 42.5,
+        "offset_dy": -18.25
+      }
+    },
     "owner": {
       "id": 1,
       "name": "Mike Johnson"
