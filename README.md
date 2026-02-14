@@ -1,14 +1,20 @@
 # Songtipper Monorepo
 
+SongTipper is a performer-focused app to manage songs, setlists, charts and live audience requests.
+
+- Purpose: Manage repertoire (songs, metadata, tags), create setlists, store charts (PDFs/images), and handle audience song requests / live queue syncing.
+- Architecture: Backend API + web UI in backend/, performer mobile app in frontend/ (Flutter), and shared API/contracts in shared/. - Key features: Repertoire & metadata, setlist building, chart/file uploads, audience request queue, project-scoped auth, offline-first mobile behavior. 
+- Data & contracts: Shared API schema / rules live in shared/ (source of truth for backend ↔ mobile). 
+- Auth & scope: Token-based authentication with authorization scoped to a Project/band. 
+- Scale & imports: Designed to support bulk imports (see database/seeders), and integrates with external metadata/enrichment as needed.
+
 Songtipper is split into multiple repositories:
 
-- `songtipper/` (this repo): shared files, tooling, and top-level
-  coordination.
+- `songtipper/` (this repo): shared files, tooling, and top-level coordination.
 - `songtipper/web/`: Laravel API + marketing site.
 - `songtipper/mobile_app/`: Flutter mobile app.
 
-`web/` and `mobile_app/` are intentionally independent Git repositories and
-are ignored by this root repo.
+`web/` and `mobile_app/` are intentionally independent Git repositories and are ignored by this root repo.
 
 ## Repository remotes
 
@@ -54,6 +60,7 @@ cd ..
 ```
 
 Notes:
+
 - Update `web/.env` for your local database/redis configuration.
 - If you use Valet, point it at `web/public`.
 
@@ -72,12 +79,14 @@ cd ..
 ## Running locally
 
 - Web:
+
 ```bash
 cd web
 php artisan dev
 ```
 
 - Mobile App:
+
 ```bash
 cd mobile_app
 flutter run
