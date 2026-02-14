@@ -486,6 +486,7 @@ Manually add an item to the active queue as an authenticated performer/project m
 {
   "type": "custom",
   "custom_title": "Crowd Favorite Mashup",
+  "tip_amount_cents": 750,
   "custom_artist": "Custom Request",
   "note": "Mash two choruses if possible"
 }
@@ -496,6 +497,7 @@ Manually add an item to the active queue as an authenticated performer/project m
 {
   "type": "repertoire_song",
   "song_id": 123,
+  "tip_amount_cents": 500,
   "note": "Acoustic version"
 }
 ```
@@ -505,11 +507,13 @@ Manually add an item to the active queue as an authenticated performer/project m
 **Request (original):**
 ```json
 {
-  "type": "original"
+  "type": "original",
+  "tip_amount_cents": 0
 }
 ```
 
 Original requests are only allowed when project setting `is_accepting_original_requests` is `true`.
+`tip_amount_cents` is optional for all types and defaults to `0` when omitted.
 
 **Response (201):**
 ```json
