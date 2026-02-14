@@ -979,7 +979,7 @@ Remove a song from repertoire.
 Bulk import songs from PDF filenames.
 
 **Request:** `multipart/form-data`
-- `files[]`: PDF files (`1..20`, max 10MB each)
+- `files[]`: PDF files (`1..20`, max 2MB each)
 - `items[index][title]`: optional song title hint for file at `index`
 - `items[index][artist]`: optional artist hint for file at `index`
 - `title`: optional string (deprecated, ignored)
@@ -994,10 +994,10 @@ Chunking requirement:
 Infrastructure requirement (to avoid 413):
 - For default nginx (`client_max_body_size 1m`), only smaller PDFs will pass.
 - Larger PDFs still require higher proxy/PHP body limits.
-- If supporting full-size chunk requests (`20 x 10MB`), set a minimum request
-  budget of `~220MB` (recommended `256MB`).
-- Nginx target: `client_max_body_size 256m;`
-- PHP target: `upload_max_filesize=10M`, `post_max_size=256M`
+- If supporting full-size chunk requests (`20 x 2MB`), set a minimum request
+  budget of `~44MB` (recommended `64MB`).
+- Nginx target: `client_max_body_size 64m;`
+- PHP target: `upload_max_filesize=2M`, `post_max_size=64M`
 
 Filename parsing:
 - Default filename base format: `Song Title - Artist.pdf`
@@ -1097,7 +1097,7 @@ List your charts.
 Upload a new chart PDF.
 
 **Request:** `multipart/form-data`
-- `file`: PDF file (required, max 10MB)
+- `file`: PDF file (required, max 2MB)
 - `song_id`: int (required)
 - `project_id`: int (required)
 
