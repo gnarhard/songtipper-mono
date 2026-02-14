@@ -714,6 +714,7 @@ Lookup order:
       "energy_level": "high",
       "era": "90s",
       "genre": "Rock",
+      "performed_musical_key": "F#",
       "original_musical_key": "F#",
       "duration_in_seconds": 259
     }
@@ -725,6 +726,11 @@ Lookup order:
 - `songs_table`: metadata came from existing DB song record.
 - `gemini`: metadata came from Gemini fallback.
 - `none`: no metadata found.
+
+`performed_musical_key` resolution:
+- Use project-level `project_songs.performed_musical_key` when a matching project
+  song exists.
+- Otherwise mirror `original_musical_key`.
 
 When `source = none`, all `metadata` fields are returned as `null`.
 
