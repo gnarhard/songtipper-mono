@@ -8,6 +8,7 @@
   "git.scanRepositories": ["web", "game", "art"],
   "git.detectSubmodules": true,
   "git.ignoredRepositories": [],
+  "git.detectWorktrees": false,
   "scm.alwaysShowRepositories": true,
   "scm.repositories.selectionMode": "multiple",
   "scm.repositories.visible": 20
