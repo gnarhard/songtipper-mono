@@ -84,6 +84,60 @@ Authenticate and receive access token.
 
 ---
 
+### POST `/v1/auth/forgot-password`
+
+Request a password reset email.
+
+**Request:**
+```json
+{
+  "email": "string (required, valid email)"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "If an account with that email exists, we have emailed a password reset link."
+}
+```
+
+Notes:
+- Response is intentionally generic to avoid revealing whether an email exists.
+- Validation errors still return standard Laravel `422` responses with `message` and `errors`.
+
+---
+
+### POST `/v1/auth/reset-password`
+
+Reset password using email + reset token.
+
+**Request:**
+```json
+{
+  "token": "string (required)",
+  "email": "string (required, valid email)",
+  "password": "string (required, confirmed)",
+  "password_confirmation": "string (required, must match password)"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Password has been reset."
+}
+```
+
+**Response (422):**
+```json
+{
+  "message": "The provided password reset token is invalid."
+}
+```
+
+---
+
 ### GET `/v1/public/projects/{projectSlug}/repertoire`
 
 Get public repertoire for a project.
@@ -264,6 +318,40 @@ Revoke the current Sanctum access token.
 ```
 
 **Response (401):** Unauthenticated.
+
+---
+
+### PUT `/v1/auth/password`
+
+Update password for authenticated user.
+
+**Request:**
+```json
+{
+  "current_password": "string (required, must match current password)",
+  "password": "string (required, confirmed)",
+  "password_confirmation": "string (required, must match password)"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Password updated successfully."
+}
+```
+
+**Response (422):**
+```json
+{
+  "message": "Current password is incorrect.",
+  "errors": {
+    "current_password": [
+      "Current password is incorrect."
+    ]
+  }
+}
+```
 
 ---
 
