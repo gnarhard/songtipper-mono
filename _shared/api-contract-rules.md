@@ -988,6 +988,16 @@ Bulk import songs from PDF filenames.
 Chunking requirement:
 - Clients must split selections larger than 20 files into multiple requests.
 - The same request/response contract applies to each chunk.
+- Performer mobile app default behavior: send `1` file per request to reduce
+  413 risk on default nginx setups.
+
+Infrastructure requirement (to avoid 413):
+- For default nginx (`client_max_body_size 1m`), only smaller PDFs will pass.
+- Larger PDFs still require higher proxy/PHP body limits.
+- If supporting full-size chunk requests (`20 x 10MB`), set a minimum request
+  budget of `~220MB` (recommended `256MB`).
+- Nginx target: `client_max_body_size 256m;`
+- PHP target: `upload_max_filesize=10M`, `post_max_size=256M`
 
 Filename parsing:
 - Default filename base format: `Song Title - Artist.pdf`
@@ -1049,6 +1059,14 @@ Duplicate detection (server-side):
   ]
 }
 ```
+
+**Response (413):** Request payload exceeded proxy/PHP body size limits.
+- Clients should show a per-chart failed message in the Failed tab.
+- User action:
+  - Reduce oversized PDF files.
+- Server action:
+  - Increase `client_max_body_size` (proxy) and PHP `post_max_size` to handle
+    a full chunk.
 
 `songs[*].action` is one of:
 - `imported`: existing song match, chart stored immediately
