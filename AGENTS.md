@@ -170,7 +170,7 @@ Match existing architecture rules and conventions.
    - Frontend: API client/repo/models/UI usage
 3. **Plan the change**
    - Keep backwards compatibility
-   - Identify migrations and rollout steps
+   - Identify migrations and rollout steps. Never exceed table name length to avoid "1059 Identifier name" errors.
 4. **Implement**
    - Update backend + frontend + shared contract as needed
 5. **Validate**
