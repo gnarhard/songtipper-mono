@@ -46,27 +46,43 @@ If you suspect a change could break existing clients, implement it in a backward
 
 ---
 
-## 1) What we’re building (high level)
+## 1) What we're building (high level)
 
 SongTipper is an app for performers to manage:
 
-- Repertoire (songs, metadata, tags)
-- Setlists
-- Charts (PDFs / images)
-- Audience requests & live queue sync (project-scoped)
+- **Repertoire** - Songs with metadata (keys, capo, tuning, energy, mood, era, genre)
+- **To-Learn List** - Songs to practice with YouTube/Ultimate Guitar links
+- **Setlists** - Organized song lists with notes, smart generation support
+- **Performance Sessions** - Live session tracking with sequential completion and smart reordering
+- **Charts** - PDF uploads with rendering, annotations, and per-page viewport preferences
+- **Audience Requests** - Live queue with tips, integrated Stripe payments
+- **Audience Features** - Profiles, achievements, "Who's Here" leaderboard
 
-**Web (Laravel)** provides authenticated APIs, data persistence, uploads, and audience-facing web routes.  
+**Web (Laravel)** provides authenticated APIs, data persistence, uploads, and audience-facing web routes.
 **Mobile App (Flutter)** is the performer app, offline-first where possible.
 
 ---
 
 ## 2) Shared contract is the source of truth (`_shared/`)
 
-Prefer one of these patterns (use whatever exists; if none exists yet, create it):
+### Canonical API specification (v1.2)
 
-- **OpenAPI**: `_shared/openapi.yaml`
-- **JSON Schemas**: `_shared/schemas/*.json`
-- **Contracts in Markdown**: `_shared/contracts/*.md`
+**Primary source of truth:** `_shared/api/openapi.yaml`
+
+This OpenAPI 3.0 document is the machine-readable contract. All endpoint changes MUST be reflected here first.
+
+### Supporting documentation
+
+- **Contracts in Markdown**: `_shared/contracts/*.md` - Domain-oriented explanations organized by resource:
+  - `auth.md` - Authentication & password management
+  - `projects.md` - Project CRUD and settings
+  - `repertoire.md` - Song management, metadata, bulk import, to-learn list
+  - `queue.md` - Queue management and request history
+  - `charts.md` - Chart upload, rendering, annotations, viewport prefs
+  - `setlists.md` - Setlist builder, performance sessions, smart generation
+  - `public.md` - Public audience endpoints (repertoire, requests, profile, leaderboard)
+- **Overview**: `_shared/api-contract-rules.md` - API design principles and patterns
+- **Index**: `_shared/contracts/README.md` - Contract file guide
 
 ### Required contract rules
 
@@ -74,6 +90,7 @@ Prefer one of these patterns (use whatever exists; if none exists yet, create it
 - Use consistent naming (prefer `snake_case` in Laravel JSON, and map to `camelCase` in Dart using serializers).
 - For nullable fields, explicitly document nullability and default behaviors.
 - Never remove or rename fields without a migration plan.
+- All write endpoints MUST support `Idempotency-Key` header for safe retries.
 
 ---
 
@@ -236,10 +253,11 @@ flutter build ios
 
 ### Shared
 
-- Contracts: `_shared/contracts`
-- Schemas: `_shared/schemas`
-- OpenAPI: `_shared/openapi.yaml` (if present)
-- Cross-stack docs: `_shared/README.md`
+- **OpenAPI Spec**: `_shared/api/openapi.yaml` (v1.2) - Canonical API contract
+- **Contracts**: `_shared/contracts/*.md` - Domain-specific API documentation
+- **Overview**: `_shared/api-contract-rules.md` - API design principles
+- **Architecture**: `ARCHITECTURE.md` - System architecture documentation
+- **Cross-stack docs**: `_shared/README.md`
 
 ---
 
@@ -252,25 +270,56 @@ flutter build ios
 
 ### Dates
 
-- Use ISO 8601 strings in API
+- Use ISO 8601 strings in API with timezone: `2026-02-15T18:00:00+00:00`
+- Always UTC on server, client converts to local timezone
 - Document timezone handling in `_shared/`
 
 ### Pagination
 
-If pagination is used, prefer a consistent shape, e.g.:
+Laravel paginator format:
 
 ```json
 {
   "data": [ ... ],
   "meta": {
-    "page": 1,
-    "per_page": 25,
+    "current_page": 1,
+    "last_page": 3,
+    "per_page": 50,
     "total": 123
+  },
+  "links": {
+    "first": "...",
+    "last": "...",
+    "prev": null,
+    "next": "..."
   }
 }
 ```
 
-Or document Laravel paginator output if used.
+### Idempotency
+
+All write operations support `Idempotency-Key` header:
+- Mobile app outbox MUST send stable keys per logical operation
+- Key format: UUID v4
+- Server deduplicates based on key within 24-hour window
+- Retries with same key return original response (200/201)
+
+### Metadata Fields
+
+**Mood** (v1.2):
+- Global: `songs.mood` (nullable)
+- Project override: `project_songs.mood` (nullable)
+- Effective value: `project_songs.mood ?? songs.mood`
+- Validation: `^[a-zA-Z0-9_-]+$` (one word, e.g., "party", "chill", "romantic")
+- Supported in repertoire list, create, update, and bulk import
+
+**Energy Level**:
+- Values: `low`, `medium`, `high`
+- Global + project override pattern (same as mood)
+
+**Genre**:
+- Free text, max 50 chars
+- Global + project override pattern
 
 ---
 
@@ -313,3 +362,80 @@ If something is still ambiguous:
 ## 13) Finish the job completely
 
 If you can help it, don't ask the user to do anything in addition to your changes. Do everything. If a database needs migrating or anything of the sort, migrate it/do the task.
+
+---
+
+## 14) Key features and capabilities (v1.2)
+
+### Performance Sessions
+
+- Routes: `POST /performances/start`, `POST /performances/stop`, `GET /performances/current`
+- Session modes: `manual` or `smart`
+- Track completion: `POST /performances/current/complete` (sequential with `performed_order_index`)
+- Skip/Random: `POST /performances/current/skip`, `POST /performances/current/random`
+- Smart mode can reorder pending items after skip/complete
+- Exactly one active session per project (409 Conflict if starting while active)
+
+### Smart Setlist Generation
+
+- Route: `POST /setlists/generate-smart`
+- Stores generation metadata (`seed`, version, constraints) on created setlist
+- Can regenerate with different parameters
+
+### To-Learn List
+
+- Routes: `GET|POST|PUT|DELETE /learning-songs`
+- Fields: `youtube_video_url`, `ultimate_guitar_url` (link/search only, no scraping), `notes`
+- Separate from repertoire (songs you're actively practicing)
+
+### Copy Repertoire
+
+- Route: `POST /repertoire/copy-from`
+- Body: `{ "source_project_id": 1, "include_charts": true }`
+- Copies repertoire rows, overrides, and optionally chart linkage
+
+### Chart Viewport Preferences
+
+- **NEW (v1.2)**: Per `(user, chart, page)` in `chart_page_user_prefs`
+- Routes: `GET|PUT /charts/{chartId}/pages/{page}/viewport`
+- **DEPRECATED**: `projects.chart_viewport_prefs` (project-level blob)
+- Clients should migrate to per-page endpoint
+
+### Setlist Notes
+
+- Supported at three levels: `setlists.notes`, `setlist_sets.notes`, `setlist_songs.notes`
+- All create/update payloads accept `notes` as nullable text
+
+### Text Import for Setlists
+
+- Route: `POST /setlists/{setlistId}/sets/{setId}/songs/import-text`
+- Accepts newline-separated lines: `Title` or `Title - Artist`
+- Auto-matches to repertoire
+
+### Audience Features
+
+**Profile & Achievements**:
+- Route: `GET /public/projects/{slug}/audience/me`
+- Cookie-backed identity (`songtipper_audience_token`)
+- Deterministic pseudonymous display name: `Adjective + Animal` (hash-based)
+- Returns profile, totals, achievements list
+
+**Who's Here Leaderboard**:
+- Route: `GET /public/projects/{slug}/audience/leaderboard`
+- Uses current active performance session
+- Ranks by `SUM(tip_amount_cents)` during session
+- Stable tiebreaker: `joined_at ASC`
+
+### Request Creation
+
+**Canonical persistence**:
+- `requests.song_id` is always populated (never null)
+- Tip-only requests → placeholder song: `"Tip Jar Support" / "Audience"`
+- Original requests → placeholder song: `"Original Request" / "Audience"`
+- Client can send `tip_only` or `is_original` flags, backend maps to placeholders
+
+### Bulk Import
+
+- Limits (v1.2): max `128` files per request, max `2MB` per PDF
+- Filename metadata supports: `key`, `capo`, `tuning`, `energy`, `era`, `genre`, `mood`
+- Mood token example: `Songname - Artist -- mood=party.pdf`
