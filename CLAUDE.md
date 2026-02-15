@@ -21,6 +21,8 @@ _You MUST work in a git worktree, NEVER in the main repository._
 - After creating a worktree, you MUST `cd` into it before any work
 - If worktree creation fails, output ERROR signal and terminate - do NOT fall back to main repo
 - The main `songtipper` directory must remain untouched by agents
+- This root docs worktree intentionally contains shared docs only (`_shared/`) and does **not** include editable `web/` or `mobile_app/` code.
+- If task work requires app code, create and use separate worktrees for `web/` and `mobile_app/`; do not assume a plain root worktree has either directory.
 - Once finished, create a PR for each repo you modified (web and mobile app) to merge into main and share the PR link with the developer
 
 ## Ignore (do not read or edit):
