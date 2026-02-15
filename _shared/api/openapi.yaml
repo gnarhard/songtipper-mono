@@ -17,6 +17,7 @@ servers:
   - url: /api/v1
 
 tags:
+  - name: Projects
   - name: Repertoire
   - name: Setlists
   - name: Performances
@@ -25,6 +26,27 @@ tags:
   - name: Learning
 
 paths:
+  /me/projects/{projectId}:
+    delete:
+      tags: [Projects]
+      summary: Delete an owned project
+      description: Deletes the project and associated project-scoped data.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Project deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+        '403':
+          description: Forbidden (user is not the project owner)
+
   /me/projects/{projectId}/repertoire:
     get:
       tags: [Repertoire]
