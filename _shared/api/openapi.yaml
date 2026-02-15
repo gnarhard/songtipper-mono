@@ -1,0 +1,672 @@
+openapi: 3.0.3
+info:
+  title: SongTipper API v1.2
+  version: 1.2.0
+  description: |
+    Contract-first API for SongTipper performer and audience flows.
+
+    Canonical response envelope:
+    - success: {"data": ..., "meta": ...}
+    - validation/error: Laravel standard {"message": "...", "errors": {...}}
+
+    Canonical v1.2 rules:
+    - Retryable writes support `Idempotency-Key`.
+    - `requests.song_id` is always persisted (tip-only/original map to placeholder songs).
+    - Chart viewport preferences are per `(user, chart, page)`.
+servers:
+  - url: /api/v1
+
+tags:
+  - name: Repertoire
+  - name: Setlists
+  - name: Performances
+  - name: Charts
+  - name: Audience
+  - name: Learning
+
+paths:
+  /me/projects/{projectId}/repertoire:
+    get:
+      tags: [Repertoire]
+      summary: List repertoire songs
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - in: query
+          name: mood
+          schema: { type: string }
+          description: Effective mood filter (project override then global song mood).
+      responses:
+        '200':
+          description: Repertoire list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRepertoireResponse'
+    post:
+      tags: [Repertoire]
+      summary: Add repertoire song
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepertoireUpsertRequest'
+      responses:
+        '201':
+          description: Song added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SingleRepertoireResponse'
+
+  /me/projects/{projectId}/repertoire/{projectSongId}:
+    put:
+      tags: [Repertoire]
+      summary: Update repertoire song
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/ProjectSongId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepertoireUpsertRequest'
+      responses:
+        '200':
+          description: Song updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SingleRepertoireResponse'
+    delete:
+      tags: [Repertoire]
+      summary: Delete repertoire song
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/ProjectSongId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Song deleted
+
+  /me/projects/{projectId}/repertoire/bulk-import:
+    post:
+      tags: [Repertoire]
+      summary: Bulk-import chart PDFs
+      description: Up to 128 files per request, each PDF max 2MB.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [files]
+              properties:
+                files:
+                  type: array
+                  maxItems: 128
+                  items:
+                    type: string
+                    format: binary
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      title: { type: string }
+                      artist: { type: string }
+                      mood:
+                        type: string
+                        pattern: '^[a-zA-Z0-9_-]+$'
+      responses:
+        '200':
+          description: Import accepted
+
+  /me/projects/{projectId}/repertoire/copy-from:
+    post:
+      tags: [Repertoire]
+      summary: Copy repertoire from another project
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_project_id]
+              properties:
+                source_project_id: { type: integer }
+                include_charts: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Copy complete
+
+  /me/projects/{projectId}/learning-songs:
+    get:
+      tags: [Learning]
+      summary: List to-learn songs
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - in: query
+          name: mood
+          schema: { type: string }
+      responses:
+        '200':
+          description: Learning songs list
+    post:
+      tags: [Learning]
+      summary: Add learning song
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [song_id]
+              properties:
+                song_id: { type: integer }
+                youtube_video_url: { type: string, nullable: true }
+                ultimate_guitar_url: { type: string, nullable: true }
+                notes: { type: string, nullable: true }
+      responses:
+        '201':
+          description: Learning song created
+
+  /me/projects/{projectId}/learning-songs/{learningSongId}:
+    put:
+      tags: [Learning]
+      summary: Update learning song
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/LearningSongId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                youtube_video_url: { type: string, nullable: true }
+                ultimate_guitar_url: { type: string, nullable: true }
+                notes: { type: string, nullable: true }
+      responses:
+        '200':
+          description: Learning song updated
+    delete:
+      tags: [Learning]
+      summary: Remove learning song
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/LearningSongId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Learning song deleted
+
+  /me/projects/{projectId}/setlists/generate-smart:
+    post:
+      tags: [Setlists]
+      summary: Generate and store a smart setlist
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                seed: { type: integer, nullable: true }
+                constraints:
+                  type: object
+                  properties:
+                    set_count: { type: integer, nullable: true }
+                    target_total_seconds: { type: integer, nullable: true }
+                    break_seconds: { type: integer, nullable: true }
+                    moods_include:
+                      type: array
+                      items: { type: string }
+      responses:
+        '201':
+          description: Setlist generated
+
+  /me/projects/{projectId}/setlists/{setlistId}/sets/{setId}/songs/import-text:
+    post:
+      tags: [Setlists]
+      summary: Paste/import newline-separated titles into a set
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/SetlistId'
+        - $ref: '#/components/parameters/SetId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lines]
+              properties:
+                lines:
+                  type: array
+                  items: { type: string }
+      responses:
+        '201':
+          description: Songs imported
+
+  /me/projects/{projectId}/performances/start:
+    post:
+      tags: [Performances]
+      summary: Start a performance session
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [setlist_id, mode]
+              properties:
+                setlist_id: { type: integer }
+                mode:
+                  type: string
+                  enum: [manual, smart]
+      responses:
+        '200':
+          description: Session started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceSessionResponse'
+        '409':
+          description: Active session already exists for this project
+
+  /me/projects/{projectId}/performances/stop:
+    post:
+      tags: [Performances]
+      summary: Stop current performance session
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Session stopped
+
+  /me/projects/{projectId}/performances/current:
+    get:
+      tags: [Performances]
+      summary: Get current performance session
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Active session or null
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceSessionResponse'
+
+  /me/projects/{projectId}/performances/current/complete:
+    post:
+      tags: [Performances]
+      summary: Mark song complete in current session
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_song_id, source]
+              properties:
+                project_song_id: { type: integer }
+                source:
+                  type: string
+                  enum: [setlist, repertoire]
+      responses:
+        '200':
+          description: Session updated
+
+  /me/projects/{projectId}/performances/current/skip:
+    post:
+      tags: [Performances]
+      summary: Skip song in current session
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_song_id]
+              properties:
+                project_song_id: { type: integer }
+      responses:
+        '200':
+          description: Session updated
+
+  /me/projects/{projectId}/performances/current/random:
+    post:
+      tags: [Performances]
+      summary: Pick weighted random pending song in smart mode
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Recommendation
+
+  /me/charts/{chartId}/pages/{page}/viewport:
+    get:
+      tags: [Charts]
+      summary: Read chart viewport preference for current user
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChartId'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Viewport preference
+    put:
+      tags: [Charts]
+      summary: Save chart viewport preference for current user
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChartId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [zoom_scale, offset_dx, offset_dy]
+              properties:
+                zoom_scale: { type: number }
+                offset_dx: { type: number }
+                offset_dy: { type: number }
+      responses:
+        '200':
+          description: Viewport saved
+
+  /me/charts/{chartId}/pages/{page}/annotations/latest:
+    get:
+      tags: [Charts]
+      summary: Get latest annotation version (LWW per chart/page/user)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChartId'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Latest annotation payload or null
+
+  /me/charts/{chartId}/pages/{page}/annotations:
+    post:
+      tags: [Charts]
+      summary: Save annotation version
+      description: Versioned + idempotent. `base_version_id` is stored for future merge support.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChartId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [local_version_id, created_at, strokes]
+              properties:
+                local_version_id: { type: string }
+                base_version_id: { type: string, nullable: true }
+                created_at: { type: string, format: date-time }
+                strokes:
+                  type: array
+                  items: { type: object }
+      responses:
+        '201':
+          description: Annotation stored
+
+  /public/projects/{projectSlug}/repertoire:
+    get:
+      tags: [Audience]
+      summary: List audience-visible repertoire
+      parameters:
+        - $ref: '#/components/parameters/ProjectSlug'
+        - in: query
+          name: mood
+          schema: { type: string }
+      responses:
+        '200':
+          description: Public repertoire list
+
+  /public/projects/{projectSlug}/requests:
+    post:
+      tags: [Audience]
+      summary: Create audience request
+      description: |
+        Tip-only and original requests are mapped to placeholder songs internally.
+        Persisted `requests.song_id` is never null.
+      parameters:
+        - $ref: '#/components/parameters/ProjectSlug'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                song_id: { type: integer, nullable: true }
+                tip_only: { type: boolean, default: false }
+                is_original: { type: boolean, default: false }
+                tip_amount_cents: { type: integer, minimum: 0 }
+                note: { type: string, maxLength: 500, nullable: true }
+      responses:
+        '200':
+          description: Request created (and payment intent payload when applicable)
+
+  /public/projects/{projectSlug}/audience/me:
+    get:
+      tags: [Audience]
+      summary: Get audience profile + achievements for current cookie identity
+      parameters:
+        - $ref: '#/components/parameters/ProjectSlug'
+      responses:
+        '200':
+          description: Audience profile and achievements
+
+  /public/projects/{projectSlug}/audience/leaderboard:
+    get:
+      tags: [Audience]
+      summary: Who-is-here leaderboard for current active performance session
+      parameters:
+        - $ref: '#/components/parameters/ProjectSlug'
+      responses:
+        '200':
+          description: Ranked participants (sum tip amount during active session)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: false
+      schema: { type: string, maxLength: 255 }
+      description: Required for client retries of write endpoints.
+    ProjectId:
+      in: path
+      name: projectId
+      required: true
+      schema: { type: integer }
+    ProjectSongId:
+      in: path
+      name: projectSongId
+      required: true
+      schema: { type: integer }
+    SetlistId:
+      in: path
+      name: setlistId
+      required: true
+      schema: { type: integer }
+    SetId:
+      in: path
+      name: setId
+      required: true
+      schema: { type: integer }
+    ChartId:
+      in: path
+      name: chartId
+      required: true
+      schema: { type: integer }
+    Page:
+      in: path
+      name: page
+      required: true
+      schema: { type: integer, minimum: 1 }
+    ProjectSlug:
+      in: path
+      name: projectSlug
+      required: true
+      schema: { type: string }
+    LearningSongId:
+      in: path
+      name: learningSongId
+      required: true
+      schema: { type: integer }
+
+  schemas:
+    SongSummary:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        artist: { type: string }
+    RepertoireSong:
+      type: object
+      properties:
+        id: { type: integer }
+        project_id: { type: integer }
+        song_id: { type: integer }
+        mood: { type: string, nullable: true }
+        energy_level: { type: string, nullable: true }
+        genre: { type: string, nullable: true }
+        song:
+          $ref: '#/components/schemas/SongSummary'
+    SingleRepertoireResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/RepertoireSong'
+        meta:
+          type: object
+          additionalProperties: true
+    PaginatedRepertoireResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RepertoireSong'
+        meta:
+          type: object
+          additionalProperties: true
+    RepertoireUpsertRequest:
+      type: object
+      properties:
+        song_id: { type: integer, nullable: true }
+        title: { type: string, nullable: true }
+        artist: { type: string, nullable: true }
+        mood:
+          type: string
+          nullable: true
+          pattern: '^[a-zA-Z0-9_-]+$'
+        energy_level: { type: string, nullable: true }
+        era: { type: string, nullable: true }
+        genre: { type: string, nullable: true }
+        performed_musical_key: { type: string, nullable: true }
+        original_musical_key: { type: string, nullable: true }
+        tuning: { type: string, nullable: true }
+        capo: { type: integer, nullable: true }
+        duration_in_seconds: { type: integer, nullable: true }
+    PerformanceSessionResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          nullable: true
+          properties:
+            id: { type: integer }
+            project_id: { type: integer }
+            setlist_id: { type: integer, nullable: true }
+            mode:
+              type: string
+              enum: [manual, smart]
+            is_active: { type: boolean }
+            started_at: { type: string, format: date-time, nullable: true }
+            ended_at: { type: string, format: date-time, nullable: true }
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id: { type: integer }
+                  project_song_id: { type: integer }
+                  status:
+                    type: string
+                    enum: [pending, performed, skipped]
+                  order_index: { type: integer }
+                  performed_order_index: { type: integer, nullable: true }
+        meta:
+          type: object
+          additionalProperties: true

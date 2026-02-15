@@ -4,9 +4,15 @@ This directory contains the detailed API contract specifications for Song Tipper
 
 ## Overview
 
-Each contract file documents the request/response formats, validation rules, and behavior for a specific resource or feature area. These contracts serve as the **source of truth** for API implementation in both the Laravel backend and Flutter mobile app.
+`_shared/api/openapi.yaml` is the canonical machine-readable source of truth.
+
+Contract markdown files in this directory provide domain-oriented explanations and implementation notes that align with the OpenAPI document.
 
 ## Contract Files
+
+### Source of truth
+
+- **[../api/openapi.yaml](../api/openapi.yaml)** - Canonical API contract (v1.2)
 
 ### Core Resources
 
@@ -78,6 +84,11 @@ Each contract file documents the request/response formats, validation rules, and
   }
 }
 ```
+
+### Idempotency
+
+- Retryable writes support `Idempotency-Key`.
+- Mobile outbox writes must send stable keys per logical operation.
 
 ### HTTP Status Codes
 
