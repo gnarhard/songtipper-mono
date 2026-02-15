@@ -32,6 +32,10 @@ Sets:
 - `PUT /setlists/{setlistId}/sets/{setId}`
 - `DELETE /setlists/{setlistId}/sets/{setId}`
 
+Delete behavior:
+- Remaining sets are always reindexed so `order_index` stays contiguous (`0..N-1`).
+- For normal setlists (`generation_meta` is null/empty), remaining default-numbered titles (`Set <number>`) are renumbered sequentially.
+
 Set songs:
 - `POST /setlists/{setlistId}/sets/{setId}/songs`
 - `POST /setlists/{setlistId}/sets/{setId}/songs/bulk`
