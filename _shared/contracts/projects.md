@@ -14,6 +14,7 @@
 - `POST /`
 - `PUT /{projectId}`
 - `PATCH /{projectId}`
+- `DELETE /{projectId}` (owner-only, deletes project and associated data)
 - `POST /{projectId}/performer-image`
 
 ---
