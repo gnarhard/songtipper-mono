@@ -54,17 +54,23 @@ Song Tipper transforms the traditional tip jar into an interactive, digital expe
 
 ## Repository Structure
 
-Song Tipper uses a **monorepo architecture** with independent Git repositories for each component:
+Song Tipper is an umbrella workspace with three Git repositories:
+
+1. Root workspace/meta repo (`songtipper-mono`)
+2. Backend repo (`web/`)
+3. Mobile repo (`mobile_app/`)
+
+`web/` and `mobile_app/` are nested repositories inside the workspace root.
 
 ```
-Song Tipper/                         # Monorepo root
+Song Tipper/                         # Workspace root (songtipper-mono)
 ├── _shared/                         # API contracts & documentation (source of truth)
 │   ├── contracts/                   # Endpoint specifications
 │   │   └── setlists.md
 │   ├── api-contract-rules.md        # API design principles
 │   └── audience-achievements.md     # Achievement definitions
 │
-├── web/                             # Laravel backend (separate Git repo)
+├── web/                             # Laravel backend (songtipper_web repo)
 │   ├── app/
 │   │   ├── Models/                  # Eloquent models
 │   │   ├── Http/Controllers/Api/    # API controllers
@@ -79,7 +85,7 @@ Song Tipper/                         # Monorepo root
 │   │   └── web.php                  # Web routes (audience pages)
 │   └── config/                      # Laravel configuration
 │
-└── mobile_app/                      # Flutter app (separate Git repo)
+└── mobile_app/                      # Flutter app (songtipper_mobile_app repo)
     ├── lib/
     │   ├── main.dart                # App entry point
     │   ├── core/                    # Core infrastructure
@@ -111,16 +117,17 @@ Song Tipper/                         # Monorepo root
 
 ### Git Worktree Workflow
 
-All development happens in Git worktrees to keep the main repository clean:
+All development happens from a workspace worktree (`../songtipper-worktrees/<track_id>`). Inside that worktree, `web/` and `mobile_app/` keep their own Git histories/remotes.
 
 ```bash
-# Create worktree for feature branch
-git worktree add ../songtipper-worktrees/feature-name feature-name
+# Create workspace worktree for feature branch
+git worktree add ../songtipper-worktrees/feature-name -b feature-name
 
-# Work in the worktree
+# Work in the workspace worktree
 cd ../songtipper-worktrees/feature-name
 
-# When done, create PRs and clean up
+# Commit and open PRs per repo (root, web, mobile_app) as needed.
+# Then clean up:
 git worktree remove ../songtipper-worktrees/feature-name
 ```
 
@@ -343,7 +350,7 @@ A band, solo act, or performance context. All data is scoped to a project.
 - `is_accepting_requests` - Toggle request queue on/off
 - `is_accepting_original_requests` - Allow "play an original" requests
 - `show_persistent_queue_strip` - UI preference for audience
-- `chart_viewport_prefs` - JSON object storing zoom/pan for charts
+- `chart_viewport_prefs` - deprecated; superseded by per-user chart page prefs table
 - `created_at`, `updated_at`
 
 **Relationships:**
@@ -949,7 +956,7 @@ Declarative routing with deep linking support.
 **Purpose:** Store and annotate sheet music PDFs.
 
 **Capabilities:**
-- **Upload PDFs:** Up to 10MB per chart
+- **Upload PDFs:** Up to 2MB per chart
 - **Automatic Rendering:** Background job converts PDF → PNG (light/dark themes)
 - **Annotations:** Draw on charts with strokes, colors, thickness, eraser
 - **Offline Annotations:** Stored locally with UUID-based versioning
@@ -1012,8 +1019,8 @@ Declarative routing with deep linking support.
 **Capabilities:**
 - **Filename Parsing:** `Song Title - Artist -- key=C -- capo=2.pdf`
 - **Gemini Identification:** If filename is unclear, AI identifies song from chart image
-- **Batch Processing:** Up to 20 files per request
-- **Chunking:** Mobile app sends 1 file/request to avoid 413 errors
+- **Batch Processing:** Up to 128 files per request
+- **Chunking:** Mobile app can send up to 128 files/request (2MB each) within the 256MB server limit
 - **Duplicate Detection:** Byte-identical PDFs skipped
 - **Progress Tracking:** UI shows imported/queued/failed counts
 
@@ -1246,10 +1253,10 @@ r2://songtipper/
 
 ### Upload Limits
 
-- **Single Chart:** 2Mb PDF
+- **Single Chart:** 2MB PDF
 - **Bulk Import (per request):** 128 files × 2MB = 256MB max
   - Nginx/PHP limits typically lower (~256MB recommended)
-  - Mobile app default: 1 file per request to avoid 413 errors
+  - Canonical infrastructure budget: `client_max_body_size 256m`, `post_max_size 256M`
 - **Profile Image:** 5MB (JPEG, PNG, WebP)
 
 ---

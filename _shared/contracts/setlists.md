@@ -1,411 +1,70 @@
-# Setlists API Contracts
+# Setlists + Performance API Contracts (v1.2)
 
-## Auth and scope
+## Scope and auth
 
-- All endpoints below require `Authorization: Bearer <token>`.
-- All endpoints are performer-scoped and project-scoped via `{project_id}`.
-- Route prefix: `/api/v1/me/projects/{project_id}/setlists`
-
----
-
-## List Setlists
-
-- **Method**: `GET`
-- **Path**: `/`
-
-List all setlists for a project.
-
-### Success response (`200`)
-
-```json
-{
-  "data": [
-    {
-      "id": 1,
-      "project_id": 1,
-      "name": "Friday Night Set",
-      "created_at": "2026-02-04T12:00:00+00:00",
-      "sets": [
-        {
-          "id": 1,
-          "setlist_id": 1,
-          "name": "Set 1",
-          "order_index": 0,
-          "songs": [
-            {
-              "id": 1,
-              "set_id": 1,
-              "project_song_id": 5,
-              "order_index": 0,
-              "song": {
-                "id": 10,
-                "title": "Fly Me to the Moon",
-                "artist": "Frank Sinatra"
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
+- Protected routes require `Authorization: Bearer <token>`.
+- Write endpoints support `Idempotency-Key`.
+- Route prefix: `/api/v1/me/projects/{project_id}`.
 
 ---
 
-## Create Setlist
+## Setlist notes
 
-- **Method**: `POST`
-- **Path**: `/`
+Notes are supported at three levels:
+- `setlists.notes`
+- `setlist_sets.notes`
+- `setlist_songs.notes`
 
-Create a new setlist.
-
-### Request body
-
-```json
-{
-  "name": "Saturday Gig"
-}
-```
-
-**Validation Rules:**
-- `name`: required, string, max 255 chars
-
-### Success response (`201`)
-
-```json
-{
-  "message": "Setlist created",
-  "setlist": {
-    "id": 2,
-    "project_id": 1,
-    "name": "Saturday Gig",
-    "created_at": "2026-02-04T12:00:00+00:00",
-    "sets": []
-  }
-}
-```
+Create/update payloads accept `notes` as nullable text.
 
 ---
 
-## Get Setlist
+## Setlist management
 
-- **Method**: `GET`
-- **Path**: `/{setlistId}`
+- `GET /setlists`
+- `POST /setlists`
+- `GET /setlists/{setlistId}`
+- `PUT /setlists/{setlistId}`
+- `DELETE /setlists/{setlistId}`
 
-Get a single setlist with its sets and songs.
+Sets:
+- `POST /setlists/{setlistId}/sets`
+- `PUT /setlists/{setlistId}/sets/{setId}`
+- `DELETE /setlists/{setlistId}/sets/{setId}`
 
-### Success response (`200`)
+Set songs:
+- `POST /setlists/{setlistId}/sets/{setId}/songs`
+- `POST /setlists/{setlistId}/sets/{setId}/songs/bulk`
+- `PUT /setlists/{setlistId}/sets/{setId}/songs/{songId}`
+- `PUT /setlists/{setlistId}/sets/{setId}/songs/reorder`
+- `DELETE /setlists/{setlistId}/sets/{setId}/songs/{songId}`
 
-```json
-{
-  "setlist": {
-    "id": 1,
-    "project_id": 1,
-    "name": "Friday Night Set",
-    "created_at": "2026-02-04T12:00:00+00:00",
-    "sets": [ ... ]
-  }
-}
-```
-
----
-
-## Update Setlist
-
-- **Method**: `PUT`
-- **Path**: `/{setlistId}`
-
-Update a setlist.
-
-### Request body
-
-```json
-{
-  "name": "Updated Name"
-}
-```
-
-### Success response (`200`)
-
-```json
-{
-  "message": "Setlist updated",
-  "setlist": { ... }
-}
-```
+Paste import:
+- `POST /setlists/{setlistId}/sets/{setId}/songs/import-text`
+- Accepts newline-separated lines (`Title` or `Title - Artist`).
 
 ---
 
-## Delete Setlist
+## Smart generation
 
-- **Method**: `DELETE`
-- **Path**: `/{setlistId}`
-
-Delete a setlist and all its sets/songs.
-
-### Success response (`200`)
-
-```json
-{
-  "message": "Setlist deleted"
-}
-```
+- `POST /setlists/generate-smart`
+- Stores generation metadata (`seed`, version, constraints) on the created setlist.
 
 ---
 
-## Create Set
+## Performance sessions
 
-- **Method**: `POST`
-- **Path**: `/{setlistId}/sets`
+Routes:
+- `POST /performances/start`
+- `POST /performances/stop`
+- `GET /performances/current`
+- `POST /performances/current/complete`
+- `POST /performances/current/skip`
+- `POST /performances/current/random`
 
-Create a new set within a setlist.
-
-### Request body
-
-```json
-{
-  "name": "Set 1",
-  "order_index": 0
-}
-```
-
-**Validation Rules:**
-- `name`: required, string, max 255 chars
-- `order_index`: optional, integer, min 0 (auto-increments if not provided)
-
-### Success response (`201`)
-
-```json
-{
-  "message": "Set created",
-  "set": {
-    "id": 1,
-    "setlist_id": 1,
-    "name": "Set 1",
-    "order_index": 0,
-    "songs": []
-  }
-}
-```
-
----
-
-## Update Set
-
-- **Method**: `PUT`
-- **Path**: `/{setlistId}/sets/{setId}`
-
-Update a set.
-
-### Request body
-
-```json
-{
-  "name": "First Set",
-  "order_index": 1
-}
-```
-
-**Validation Rules:**
-- `name`: optional, string, max 255 chars
-- `order_index`: optional, integer, min 0
-
-### Success response (`200`)
-
-```json
-{
-  "message": "Set updated",
-  "set": { ... }
-}
-```
-
----
-
-## Delete Set
-
-- **Method**: `DELETE`
-- **Path**: `/{setlistId}/sets/{setId}`
-
-Delete a set and all its songs.
-
-### Success response (`200`)
-
-```json
-{
-  "message": "Set deleted"
-}
-```
-
----
-
-## Add Song to Set
-
-- **Method**: `POST`
-- **Path**: `/{setlistId}/sets/{setId}/songs`
-
-Add a single song to a set.
-
-### Request body
-
-```json
-{
-  "project_song_id": 5,
-  "order_index": 0
-}
-```
-
-**Validation Rules:**
-- `project_song_id`: required, must exist in project_songs table and belong to this project
-- `order_index`: optional, integer, min 0 (auto-increments if not provided)
-
-### Success response (`201`)
-
-```json
-{
-  "message": "Song added to set",
-  "setlist_song": {
-    "id": 1,
-    "set_id": 1,
-    "project_song_id": 5,
-    "order_index": 0,
-    "song": {
-      "id": 10,
-      "title": "Fly Me to the Moon",
-      "artist": "Frank Sinatra"
-    }
-  }
-}
-```
-
-### Error response (`500`)
-
-A song cannot appear twice in the same set (database constraint).
-
----
-
-## Bulk Add Songs to Set
-
-- **Method**: `POST`
-- **Path**: `/{setlistId}/sets/{setId}/songs/bulk`
-
-Add multiple songs to a set.
-
-### Request body
-
-```json
-{
-  "project_song_ids": [123, 124, 125],
-  "start_order_index": 0
-}
-```
-
-**Validation Rules:**
-- `project_song_ids`: required array of integer IDs, at least one item
-- `project_song_ids` must be distinct
-- each `project_song_id` must belong to current project
-- each `project_song_id` must not already exist in the target set
-- `start_order_index`: optional integer, defaults to current song count in set
-
-### Success response (`201`)
-
-```json
-{
-  "message": "Songs added to set",
-  "setlist_songs": [
-    {
-      "id": 1001,
-      "set_id": 55,
-      "project_song_id": 123,
-      "order_index": 0,
-      "song": {
-        "id": 9,
-        "title": "Song Title",
-        "artist": "Artist"
-      }
-    }
-  ]
-}
-```
-
-### Error response (`422`)
-
-```json
-{
-  "message": "The given data was invalid.",
-  "errors": {
-    "project_song_ids.0": ["The selected project song ids.0 is invalid."]
-  }
-}
-```
-
----
-
-## Remove Song from Set
-
-- **Method**: `DELETE`
-- **Path**: `/{setlistId}/sets/{setId}/songs/{songId}`
-
-Remove a song from a set.
-
-### Success response (`200`)
-
-```json
-{
-  "message": "Song removed from set"
-}
-```
-
----
-
-## Reorder Songs in Set
-
-- **Method**: `PUT`
-- **Path**: `/{setlistId}/sets/{setId}/songs/reorder`
-
-Reorder songs within a set.
-
-### Request body
-
-```json
-{
-  "song_ids": [3, 1, 2]
-}
-```
-
-The order of IDs in the array determines the new `order_index` values (0, 1, 2, ...).
-
-**Validation Rules:**
-- `song_ids`: required, array of setlist_song IDs
-- `song_ids.*`: must exist in setlist_songs table
-
-### Success response (`200`)
-
-```json
-{
-  "message": "Songs reordered",
-  "songs": [
-    {
-      "id": 3,
-      "set_id": 1,
-      "project_song_id": 7,
-      "order_index": 0,
-      "song": { ... }
-    },
-    {
-      "id": 1,
-      "set_id": 1,
-      "project_song_id": 5,
-      "order_index": 1,
-      "song": { ... }
-    },
-    {
-      "id": 2,
-      "set_id": 1,
-      "project_song_id": 6,
-      "order_index": 2,
-      "song": { ... }
-    }
-  ]
-}
-```
+Rules:
+- Exactly one active session per project.
+- Starting while active returns `409 Conflict`.
+- Session mode: `manual` or `smart`.
+- `complete` records sequential `performed_order_index`.
+- Smart mode can reorder pending items after skip/complete.
