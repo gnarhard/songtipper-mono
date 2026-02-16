@@ -100,4 +100,5 @@ Notes:
 Notes:
 - `pending` means the chart exists in DB but image rendering is not complete yet.
 - `failed` means artifacts are inconsistent/missing and upload verification should fail.
+- `ready` can also be returned when `page_count=0` (unknown) if at least one render row exists, all referenced render files exist, and `has_renders=true`.
 - Clients should prefer this endpoint over per-page render URL checks to reduce request fan-out.

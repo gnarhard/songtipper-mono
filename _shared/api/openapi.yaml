@@ -474,6 +474,9 @@ paths:
       description: |
         Single-call render verification for bulk upload clients.
         `pending` means the chart exists but rendering is not complete.
+        `ready` is also returned for legacy charts with unknown `page_count`
+        when at least one render record exists, render files are present, and
+        `has_renders` is true.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ChartId'
