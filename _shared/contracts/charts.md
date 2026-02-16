@@ -91,6 +91,7 @@ Notes:
   - `failure_reason`: nullable string machine code
     - `source_pdf_missing`
     - `render_file_missing`
+    - `render_metadata_inconsistent`
   - `page_count`: integer
   - `render_count`: integer
   - `expected_render_count`: nullable integer
@@ -100,4 +101,5 @@ Notes:
 Notes:
 - `pending` means the chart exists in DB but image rendering is not complete yet.
 - `failed` means artifacts are inconsistent/missing and upload verification should fail.
+- `failed` with `render_metadata_inconsistent` means render rows and chart metadata (`page_count`, `has_renders`) disagree.
 - Clients should prefer this endpoint over per-page render URL checks to reduce request fan-out.
