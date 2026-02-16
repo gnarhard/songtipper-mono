@@ -73,7 +73,31 @@ Notes:
 ## Chart Render and Download
 
 - `GET /api/v1/me/charts/{chartId}`
+- `GET /api/v1/me/charts/{chartId}/render-status`
 - `GET /api/v1/me/charts/{chartId}/signed-url`
 - `GET /api/v1/me/charts/{chartId}/page?page={page}&theme={light|dark}`
 - `POST /api/v1/me/charts/{chartId}/render` (`Idempotency-Key` supported)
 - `DELETE /api/v1/me/charts/{chartId}` (`Idempotency-Key` supported)
+
+### Render Status Endpoint
+
+- **Method**: `GET`
+- **Path**: `/api/v1/me/charts/{chartId}/render-status`
+- **Purpose**: Single-call render verification for mobile bulk import and cache preflight.
+- **Response**:
+  - `status`: `ready | pending | failed`
+  - `ready`: boolean
+  - `pending`: boolean
+  - `failure_reason`: nullable string machine code
+    - `source_pdf_missing`
+    - `render_file_missing`
+  - `page_count`: integer
+  - `render_count`: integer
+  - `expected_render_count`: nullable integer
+  - `has_renders`: boolean
+  - `missing_render_file_count`: integer
+
+Notes:
+- `pending` means the chart exists in DB but image rendering is not complete yet.
+- `failed` means artifacts are inconsistent/missing and upload verification should fail.
+- Clients should prefer this endpoint over per-page render URL checks to reduce request fan-out.

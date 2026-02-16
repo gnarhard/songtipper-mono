@@ -467,6 +467,24 @@ paths:
         '200':
           description: Viewport saved
 
+  /me/charts/{chartId}/render-status:
+    get:
+      tags: [Charts]
+      summary: Get chart render readiness status
+      description: |
+        Single-call render verification for bulk upload clients.
+        `pending` means the chart exists but rendering is not complete.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChartId'
+      responses:
+        '200':
+          description: Render readiness status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartRenderStatus'
+
   /me/charts/{chartId}/pages/{page}/annotations/latest:
     get:
       tags: [Charts]
@@ -706,3 +724,21 @@ components:
         meta:
           type: object
           additionalProperties: true
+    ChartRenderStatus:
+      type: object
+      properties:
+        chart_id: { type: integer }
+        status:
+          type: string
+          enum: [ready, pending, failed]
+        ready: { type: boolean }
+        pending: { type: boolean }
+        failure_reason:
+          type: string
+          nullable: true
+          enum: [source_pdf_missing, render_file_missing]
+        page_count: { type: integer, minimum: 0 }
+        render_count: { type: integer, minimum: 0 }
+        expected_render_count: { type: integer, minimum: 0, nullable: true }
+        has_renders: { type: boolean }
+        missing_render_file_count: { type: integer, minimum: 0 }
