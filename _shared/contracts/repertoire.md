@@ -78,5 +78,9 @@ Behavior:
 
 Fields:
 - `youtube_video_url` (optional)
+  - If omitted or null on create, backend auto-generates:
+    `https://www.youtube.com/results?search_query=<title+artist+official+music+video>`
+  - If omitted on update and current value is null, backend backfills the same
+    generated search URL
 - `ultimate_guitar_url` (optional, link/search only; no scraping)
 - `notes` (optional)

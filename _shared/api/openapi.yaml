@@ -208,7 +208,13 @@ paths:
               required: [song_id]
               properties:
                 song_id: { type: integer }
-                youtube_video_url: { type: string, nullable: true }
+                youtube_video_url:
+                  type: string
+                  nullable: true
+                  description: >-
+                    Optional explicit YouTube URL. If omitted or null, backend
+                    generates a YouTube search URL from "title artist official
+                    music video".
                 ultimate_guitar_url: { type: string, nullable: true }
                 notes: { type: string, nullable: true }
       responses:
@@ -231,7 +237,13 @@ paths:
             schema:
               type: object
               properties:
-                youtube_video_url: { type: string, nullable: true }
+                youtube_video_url:
+                  type: string
+                  nullable: true
+                  description: >-
+                    Optional explicit YouTube URL. If omitted, current value is
+                    retained; if current value is null, backend generates a
+                    YouTube search URL from "title artist official music video".
                 ultimate_guitar_url: { type: string, nullable: true }
                 notes: { type: string, nullable: true }
       responses:
