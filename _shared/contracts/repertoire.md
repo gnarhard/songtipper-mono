@@ -78,5 +78,13 @@ Behavior:
 
 Fields:
 - `youtube_video_url` (optional)
+  - Backend query: `"<title> by <artist> music video"`
+  - If omitted or null on create, backend attempts to resolve the top YouTube
+    video result (by view count) and stores a direct watch URL
+  - If omitted on update and current value is null, backend backfills using the
+    same resolver behavior
+  - If resolver is unavailable or no video is found, backend stores fallback
+    search URL:
+    `https://www.youtube.com/results?search_query=<title+by+artist+music+video>`
 - `ultimate_guitar_url` (optional, link/search only; no scraping)
 - `notes` (optional)

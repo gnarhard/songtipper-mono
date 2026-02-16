@@ -208,7 +208,14 @@ paths:
               required: [song_id]
               properties:
                 song_id: { type: integer }
-                youtube_video_url: { type: string, nullable: true }
+                youtube_video_url:
+                  type: string
+                  nullable: true
+                  description: >-
+                    Optional explicit YouTube URL. If omitted or null, backend
+                    queries YouTube for "<title> by <artist> music video" and
+                    stores the top video match (view_count order). If no match
+                    is found, backend stores a YouTube search URL fallback.
                 ultimate_guitar_url: { type: string, nullable: true }
                 notes: { type: string, nullable: true }
       responses:
@@ -231,7 +238,14 @@ paths:
             schema:
               type: object
               properties:
-                youtube_video_url: { type: string, nullable: true }
+                youtube_video_url:
+                  type: string
+                  nullable: true
+                  description: >-
+                    Optional explicit YouTube URL. If omitted, current value is
+                    retained; if current value is null, backend attempts the
+                    same "<title> by <artist> music video" resolver and falls
+                    back to a YouTube search URL.
                 ultimate_guitar_url: { type: string, nullable: true }
                 notes: { type: string, nullable: true }
       responses:
