@@ -44,7 +44,7 @@ In web, there will be AI-specific directories where you can find skills: Claude:
 
 **Keep web + mobile app in sync via `_shared/`.** Any change to API shape, auth, error format, pagination, sorting/filtering, or field naming MUST update the contract/docs in `_shared/` and corresponding Dart models/services.
 
-If you suspect a change could break existing clients, implement it in a backwards-compatible way (new fields/endpoints, versioning, or feature flags) unless explicitly told otherwise.
+During this development cycle, DO NOT implement backwards-compatible changes unless explicitly requested. Prefer direct breaking changes and update web + mobile + `_shared/` together so clients can be refreshed immediately.
 
 ---
 
@@ -91,7 +91,7 @@ This OpenAPI 3.0 document is the machine-readable contract. All endpoint changes
 - Define request/response bodies, status codes, error format, pagination model, and auth requirements.
 - Use consistent naming (prefer `snake_case` in Laravel JSON, and map to `camelCase` in Dart using serializers).
 - For nullable fields, explicitly document nullability and default behaviors.
-- Never remove or rename fields without a migration plan.
+- During this development cycle, removing or renaming fields without a migration plan is allowed when web + mobile + `_shared/` are updated together in the same task.
 - All write endpoints MUST support `Idempotency-Key` header for safe retries.
 
 ---
@@ -171,7 +171,7 @@ Match existing architecture rules and conventions.
    - Backend: routes/controllers/requests/resources
    - Frontend: API client/repo/models/UI usage
 3. **Plan the change**
-   - Keep backwards compatibility
+   - Do not keep backwards compatibility unless explicitly requested
    - Identify migrations and rollout steps. Never exceed table name length to avoid "1059 Identifier name" errors.
 4. **Implement**
    - Update backend + frontend + shared contract as needed
