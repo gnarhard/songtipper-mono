@@ -1019,8 +1019,8 @@ Declarative routing with deep linking support.
 **Capabilities:**
 - **Filename Parsing:** `Song Title - Artist -- key=C -- capo=2.pdf`
 - **Gemini Identification:** If filename is unclear, AI identifies song from chart image
-- **Batch Processing:** Up to 128 files per request
-- **Chunking:** Mobile app can send up to 128 files/request (2MB each) within the 256MB server limit
+- **Batch Processing:** Mobile app sends up to 20 files per request
+- **Chunking:** Mobile app chunks selections into 20 files/request (2MB each)
 - **Duplicate Detection:** Byte-identical PDFs skipped
 - **Progress Tracking:** UI shows imported/queued/failed counts
 
@@ -1254,9 +1254,11 @@ r2://songtipper/
 ### Upload Limits
 
 - **Single Chart:** 2MB PDF
-- **Bulk Import (per request):** 128 files × 2MB = 256MB max
-  - Nginx/PHP limits typically lower (~256MB recommended)
-  - Canonical infrastructure budget: `client_max_body_size 256m`, `post_max_size 256M`
+- **Bulk Import (mobile app per request):**
+  - max 20 files
+  - max ~7MB total multipart payload budget (byte-aware chunking)
+  - max 2MB per PDF
+  - This app-side cap avoids PHP's default `max_file_uploads=20` truncation behavior and reduces `post_max_size` / 413 failures.
 - **Profile Image:** 5MB (JPEG, PNG, WebP)
 
 ---
@@ -1270,7 +1272,15 @@ r2://songtipper/
 **Configuration:**
 ```php
 QUEUE_CONNECTION=redis
+CHART_IDENTIFICATION_QUEUE=imports
+CHART_RENDER_QUEUE=renders
 ```
+
+**Queue Topology:**
+- `imports` queue: `ProcessImportedChart` (Gemini identification)
+- `renders` queue: `RenderChartPages` (PDF-to-image rendering)
+- `default` queue: all remaining lightweight jobs
+- Dedicated queue workers are recommended for `imports` and `renders`.
 
 ### Job Classes
 
@@ -1307,6 +1317,15 @@ QUEUE_CONNECTION=redis
 **Idempotency:**
 - If chart already linked, skip
 - If song already exists, reuse
+
+### Render Verification Endpoint
+
+- `GET /api/v1/me/charts/{chartId}/render-status`
+- Used by mobile bulk upload verification to reduce per-page API fan-out.
+- Returns a normalized status:
+  - `ready`: chart renders exist and are storage-backed
+  - `pending`: chart exists but rendering is still in progress
+  - `failed`: chart artifacts are inconsistent/missing (for example source PDF or render files missing)
 
 #### Stripe Webhook Handler
 
@@ -1607,6 +1626,7 @@ flutter test       # Unit/widget tests
 - Laravel logs (storage/logs)
 - Queue monitoring (Horizon for Redis queues)
 - Sentry for error tracking (future)
+- `php artisan charts:queue-stats --json` for queue depth + failed-job snapshot
 
 **Frontend:**
 - Sentry Flutter for crash reports

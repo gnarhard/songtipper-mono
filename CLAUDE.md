@@ -438,6 +438,6 @@ If you can help it, don't ask the user to do anything in addition to your change
 
 ### Bulk Import
 
-- Limits (v1.2): max `128` files per request, max `2MB` per PDF
+- Limits (v1.2): mobile app sends max `20` files per request, max `2MB` per PDF
 - Filename metadata supports: `key`, `capo`, `tuning`, `energy`, `era`, `genre`, `mood`
 - Mood token example: `Songname - Artist -- mood=party.pdf`
