@@ -1019,8 +1019,8 @@ Declarative routing with deep linking support.
 **Capabilities:**
 - **Filename Parsing:** `Song Title - Artist -- key=C -- capo=2.pdf`
 - **Gemini Identification:** If filename is unclear, AI identifies song from chart image
-- **Batch Processing:** Up to 128 files per request
-- **Chunking:** Mobile app can send up to 128 files/request (2MB each) within the 256MB server limit
+- **Batch Processing:** Mobile app sends up to 20 files per request
+- **Chunking:** Mobile app chunks selections into 20 files/request (2MB each)
 - **Duplicate Detection:** Byte-identical PDFs skipped
 - **Progress Tracking:** UI shows imported/queued/failed counts
 
@@ -1254,9 +1254,9 @@ r2://songtipper/
 ### Upload Limits
 
 - **Single Chart:** 2MB PDF
-- **Bulk Import (per request):** 128 files × 2MB = 256MB max
-  - Nginx/PHP limits typically lower (~256MB recommended)
-  - Canonical infrastructure budget: `client_max_body_size 256m`, `post_max_size 256M`
+- **Bulk Import (mobile app per request):** 20 files × 2MB = 40MB max
+  - This app-side cap avoids PHP's default `max_file_uploads=20` truncation behavior.
+  - Server infrastructure may allow larger payloads, but mobile requests are capped at 20 files.
 - **Profile Image:** 5MB (JPEG, PNG, WebP)
 
 ---
