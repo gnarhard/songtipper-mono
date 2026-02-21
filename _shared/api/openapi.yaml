@@ -31,7 +31,17 @@ paths:
     get:
       tags: [Payouts]
       summary: Get payout account status for authenticated user
+      description: |
+        Returns persisted payout account status for the authenticated user.
+        Pass `refresh_from_stripe=true` to force a live refresh from Stripe
+        before reading status.
       security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: refresh_from_stripe
+          required: false
+          schema: { type: boolean, default: false }
+          description: Refresh payout account state from Stripe before responding.
       responses:
         '200':
           description: Current payout account status
@@ -877,7 +887,12 @@ components:
         performer_info_url: { type: string, nullable: true }
         performer_profile_image_url: { type: string, nullable: true }
         min_tip_cents: { type: integer, minimum: 0 }
-        is_accepting_requests: { type: boolean }
+        is_accepting_requests:
+          type: boolean
+          description: |
+            Performer request gate. Backend may auto-enable this when payout
+            status transitions to `enabled`, and auto-disable it when payout
+            status regresses from `enabled`.
         is_accepting_original_requests: { type: boolean }
         show_persistent_queue_strip: { type: boolean }
         chart_viewport_prefs:
