@@ -32,7 +32,7 @@
 ### What Problem Does It Solve?
 
 - **For Performers:**
-  - Manage song repertoire with detailed metadata (keys, capo, tuning, energy levels, mood)
+  - Manage song repertoire with detailed metadata (keys, capo, tuning, energy levels, theme)
   - Organize setlists for performances
   - Handle audience song requests with monetary tips
   - Store and annotate charts (sheet music PDFs)
@@ -376,7 +376,7 @@ Global song catalog. Songs are deduplicated by normalized title+artist.
 - `normalized_key` - Deduplication key (lowercase, no special chars)
 - `energy_level` - Enum: `low`, `medium`, `high` (global default)
 - `era` - e.g., "60s", "90s", "2020s"
-- `mood` - e.g., "love", "party", etc.
+- `theme` - e.g., "love", "party", etc.
 - `genre` - e.g., "Jazz", "Rock", "Pop" (global default)
 - `original_musical_key` - e.g., "C", "F#m"
 - `duration_in_seconds` - Song length
@@ -1035,7 +1035,7 @@ Declarative routing with deep linking support.
 **Purpose:** Allow audiences to browse repertoire and submit requests.
 
 **Capabilities:**
-- **Browse Repertoire:** Filter by energy, genre, era, mood
+- **Browse Repertoire:** Filter by energy, genre, era, theme
 - **Search:** Full-text search on title/artist
 - **Request Song:** With optional tip and note
 - **Tip-Only:** Support without requesting a song
@@ -1068,7 +1068,7 @@ Declarative routing with deep linking support.
 **Purpose:** Auto-populate song details using AI.
 
 **Capabilities:**
-- **Gemini Integration:** Query for energy, genre, era, key, duration, mood
+- **Gemini Integration:** Query for energy, genre, era, key, duration, theme
 - **Fallback Chain:** DB → Gemini → None
 - **Chart Identification:** Upload unknown PDF, Gemini extracts title/artist from image
 - **Manual Override:** User can always edit metadata

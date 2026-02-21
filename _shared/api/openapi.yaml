@@ -55,9 +55,9 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ProjectId'
         - in: query
-          name: mood
+          name: theme
           schema: { type: string }
-          description: Effective mood filter (project override then global song mood).
+          description: Effective theme filter (project override then global song theme).
       responses:
         '200':
           description: Repertoire list
@@ -124,7 +124,7 @@ paths:
     post:
       tags: [Repertoire]
       summary: Bulk-import chart PDFs
-      description: Up to 128 files per request, each PDF max 2MB.
+      description: Up to 20 files per request, each PDF max 2MB.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ProjectId'
@@ -139,7 +139,7 @@ paths:
               properties:
                 files:
                   type: array
-                  maxItems: 128
+                  maxItems: 20
                   items:
                     type: string
                     format: binary
@@ -150,9 +150,9 @@ paths:
                     properties:
                       title: { type: string }
                       artist: { type: string }
-                      mood:
+                      theme:
                         type: string
-                        pattern: '^[a-zA-Z0-9_-]+$'
+                        maxLength: 64
       responses:
         '200':
           description: Import accepted
@@ -187,7 +187,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ProjectId'
         - in: query
-          name: mood
+          name: theme
           schema: { type: string }
       responses:
         '200':
@@ -287,7 +287,7 @@ paths:
                     set_count: { type: integer, nullable: true }
                     target_total_seconds: { type: integer, nullable: true }
                     break_seconds: { type: integer, nullable: true }
-                    moods_include:
+                    themes_include:
                       type: array
                       items: { type: string }
       responses:
@@ -534,7 +534,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ProjectSlug'
         - in: query
-          name: mood
+          name: theme
           schema: { type: string }
       responses:
         '200':
@@ -654,7 +654,7 @@ components:
         id: { type: integer }
         project_id: { type: integer }
         song_id: { type: integer }
-        mood: { type: string, nullable: true }
+        theme: { type: string, nullable: true }
         energy_level: { type: string, nullable: true }
         genre: { type: string, nullable: true }
         song:
@@ -683,10 +683,10 @@ components:
         song_id: { type: integer, nullable: true }
         title: { type: string, nullable: true }
         artist: { type: string, nullable: true }
-        mood:
+        theme:
           type: string
           nullable: true
-          pattern: '^[a-zA-Z0-9_-]+$'
+          maxLength: 64
         energy_level: { type: string, nullable: true }
         era: { type: string, nullable: true }
         genre: { type: string, nullable: true }
