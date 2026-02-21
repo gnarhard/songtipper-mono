@@ -69,14 +69,26 @@ Example success:
 ## Dashboard link endpoint
 
 `POST /dashboard-link`:
-- Returns one-time Stripe Express dashboard login `url` and current
-  `payout_account`.
-- If payout setup has not started, returns `422`:
+- Always ensures an Express connected account exists for the current user.
+- Returns `url`, `link_type`, and current `payout_account`.
+- `link_type` behavior:
+  - `dashboard`: payout status is fully enabled and URL is Stripe Express dashboard login.
+  - `onboarding`: payout status is not enabled and URL is onboarding flow.
 
 ```json
 {
-  "code": "payout_setup_incomplete",
-  "message": "Finish payout setup before opening Stripe Express."
+  "url": "https://connect.stripe.com/...",
+  "link_type": "onboarding",
+  "payout_account": {
+    "status": "pending",
+    "setup_complete": false,
+    "status_reason": "requirements_due",
+    "stripe_account_id": "acct_123",
+    "charges_enabled": false,
+    "payouts_enabled": false,
+    "requirements_currently_due": ["external_account"],
+    "requirements_past_due": []
+  }
 }
 ```
 
