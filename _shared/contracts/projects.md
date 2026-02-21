@@ -19,6 +19,15 @@
 
 ---
 
+## Payout status refresh endpoint
+
+- `GET /api/v1/me/payout-account?refresh_from_stripe=1` refreshes payout account
+  status directly from Stripe before returning the payload.
+- Mobile settings should call this endpoint before reading request availability
+  when onboarding completion needs immediate confirmation.
+
+---
+
 ## Project payload fields
 
 Core fields:
@@ -56,6 +65,9 @@ When updating a project:
 
 - `payout_setup_complete` is true only when owner payout account status is
   `enabled`.
+- When payout status transitions from non-`enabled` to `enabled`, backend
+  automatically flips owned projects to `is_accepting_requests=true` so
+  performers can immediately take requests after onboarding completion.
 - When payout status regresses (for example from Stripe `account.updated`), web
   backend can force `is_accepting_requests` to `false` for owned projects.
 
