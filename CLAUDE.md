@@ -175,14 +175,16 @@ Match existing architecture rules and conventions.
    - Identify migrations and rollout steps. Never exceed table name length to avoid "1059 Identifier name" errors.
 4. **Implement**
    - Update backend + frontend + shared contract as needed
+   - For every behavior you add or change, create or update both unit tests and feature/integration tests in the same task.
 5. **Validate**
-   - Run relevant tests/linters/builds (see commands below)
+   - Run relevant tests/linters/builds (see commands below), including the new/updated unit and feature/integration tests.
 6. **Summarize**
    - Provide a short changelog + any migration/rollout notes
 
 ### Always:
 
 - Prefer small, reviewable diffs.
+- Always add or update unit tests and feature tests for everything you modify or add.
 - Don’t add new dependencies unless necessary.
 - Don’t reformat entire files unless asked or required by formatter.
 
