@@ -11,7 +11,7 @@
 ## Public repertoire
 
 - `GET /repertoire`
-- Supports search/sort and metadata filters including `mood`.
+- Supports search/sort and metadata filters including `theme`.
 
 ---
 

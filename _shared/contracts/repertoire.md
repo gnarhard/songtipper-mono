@@ -8,12 +8,14 @@
 
 ---
 
-## Mood metadata
+## Theme metadata
 
-- `songs.mood`: nullable global mood.
-- `project_songs.mood`: nullable project override.
-- Effective mood: `project_songs.mood ?? songs.mood`.
-- Validation pattern: `^[a-zA-Z0-9_-]+$` (one word).
+- `songs.theme`: nullable global theme.
+- `project_songs.theme`: nullable project override.
+- Effective theme: `project_songs.theme ?? songs.theme`.
+- Validation: nullable string, max `64` chars.
+- Gemini metadata enrichment only persists these canonical themes:
+  `Love`, `Party`, `St. Patricks`, `Christmas`, `Halloween`, `Patriotic`.
 
 ---
 
@@ -21,15 +23,15 @@
 
 ### List
 - `GET /repertoire`
-- Supports `mood` filter.
+- Supports `theme` filter.
 
 ### Create
 - `POST /repertoire`
-- Supports mood in request and response payloads.
+- Supports theme in request and response payloads.
 
 ### Update
 - `PUT /repertoire/{projectSongId}`
-- Supports mood updates at project override level.
+- Supports theme updates at project override level.
 
 ### Delete
 - `DELETE /repertoire/{projectSongId}`
@@ -44,10 +46,10 @@
 
 - `POST /repertoire/bulk-import`
 - Limits:
-  - max files per request: `128`
+  - max files per request: `20`
   - max size per PDF: `2MB`
-- Filename metadata supports: `key`, `capo`, `tuning`, `energy`, `era`, `genre`, `mood`.
-- Mood filename token example: `-- mood=party`.
+- Filename metadata supports: `key`, `capo`, `tuning`, `energy`, `era`, `genre`, `theme`.
+- Theme filename token example: `-- theme=Love`.
 
 ---
 
