@@ -47,6 +47,7 @@ paths:
       description: |
         Creates the Stripe Express account if it does not exist and returns a
         single-use onboarding link (`type=account_onboarding`).
+        Response `link_type` is always `onboarding`.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -61,27 +62,22 @@ paths:
   /me/payout-account/dashboard-link:
     post:
       tags: [Payouts]
-      summary: Create a one-time Stripe Express dashboard login link
+      summary: Create a Stripe Express URL for dashboard or onboarding
       description: |
-        Returns a single-use login URL for Stripe Express.
-        If payout setup has not started, this endpoint returns
-        `payout_setup_incomplete`.
+        Ensures a Stripe Express account exists for the authenticated user,
+        refreshes account status, and returns:
+        - `link_type=dashboard` with a dashboard login URL when enabled.
+        - `link_type=onboarding` with an onboarding URL otherwise.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
       responses:
         '200':
-          description: Dashboard login link generated
+          description: Express URL generated (dashboard or onboarding)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PayoutAccountLinkResponse'
-        '422':
-          description: Payout setup incomplete
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PayoutSetupIncompleteError'
 
   /me/payouts:
     get:
@@ -959,6 +955,9 @@ components:
       type: object
       properties:
         url: { type: string, format: uri }
+        link_type:
+          type: string
+          enum: [onboarding, dashboard]
         payout_account:
           $ref: '#/components/schemas/PayoutAccount'
     PayoutSetupIncompleteError:
