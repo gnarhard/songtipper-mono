@@ -40,7 +40,10 @@ Route prefix: `/api/v1/auth`
         "is_accepting_requests": true,
         "is_accepting_original_requests": true,
         "show_persistent_queue_strip": true,
-        "owner_user_id": 1
+        "owner_user_id": 1,
+        "payout_setup_complete": false,
+        "payout_account_status": "pending",
+        "payout_status_reason": "requirements_due"
       }
     ]
   },

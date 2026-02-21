@@ -27,6 +27,19 @@ Request body fields:
 - `tip_amount_cents` (int)
 - `note` (nullable)
 
+Response fields:
+- `request_id` (nullable int)
+- `client_secret` (nullable string)
+- `payment_intent_id` (nullable string)
+- `requires_payment` (bool)
+- `stripe_account_id` (nullable string, present when `requires_payment=true`)
+
+Paid request intent behavior:
+- PaymentIntents are created as Connect direct charges on the performer's
+  connected account.
+- `stripe_account_id` is returned so web Stripe.js can initialize the
+  connected-account payment context correctly.
+
 Canonical persistence rule:
 - `requests.song_id` is always populated.
 - Tip-only requests map to placeholder song:
@@ -35,6 +48,19 @@ Canonical persistence rule:
 - Original requests map to placeholder song:
   - `title = "Original Request"`
   - `artist = "Audience"`
+
+Payout setup gate:
+- If owner payout setup is incomplete, request creation returns `422`:
+
+```json
+{
+  "code": "payout_setup_incomplete",
+  "message": "This project is not currently accepting requests."
+}
+```
+
+- If project requests are disabled independently, API returns `422` with
+  message only (no `code` field).
 
 ---
 

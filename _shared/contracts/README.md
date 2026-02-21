@@ -26,6 +26,11 @@ Contract markdown files in this directory provide domain-oriented explanations a
   - Project settings and configuration
   - Performer profile image upload
 
+- **[payouts.md](./payouts.md)** - Stripe Connect payout account management
+  - Payout account readiness status
+  - Onboarding link generation
+  - Express dashboard login links
+
 - **[repertoire.md](./repertoire.md)** - Song repertoire management
   - Add/edit/delete songs in repertoire
   - Song metadata enrichment (Gemini)
