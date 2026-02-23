@@ -147,7 +147,7 @@ git worktree remove ../songtipper-worktrees/feature-name
 | **Payments** | Stripe | Payment processing |
 | **File Storage** | Cloudflare R2 (S3-compatible) | Chart PDFs and renders |
 | **Queue System** | Laravel Queues (Redis) | Background job processing |
-| **AI/ML** | Google Gemini | Song metadata enrichment |
+| **AI/ML** | OpenAI (default), Google Gemini (optional) | Song metadata enrichment |
 | **PDF Rendering** | Custom job (ImageMagick/similar) | PDF to image conversion |
 
 ### Frontend (Mobile App)
@@ -209,7 +209,7 @@ Song Tipper follows a **client-server architecture** with clear separation of co
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │         Background Jobs (Laravel Queues)            │   │
 │  │  - Chart PDF → Image Rendering                     │   │
-│  │  - Gemini Song Identification                      │   │
+│  │  - AI Song Identification                          │   │
 │  │  - Payment Webhook Processing                      │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                                                             │
@@ -939,12 +939,12 @@ Declarative routing with deep linking support.
 **Purpose:** Organize and track all songs a performer can play.
 
 **Capabilities:**
-- **Add Songs:** By title/artist (with Gemini metadata enrichment)
+- **Add Songs:** By title/artist (with AI metadata enrichment)
 - **Metadata Overrides:** Per-project energy, genre, key, capo, tuning
 - **Performance Tracking:** Count and last performed date
 - **Practice Flags:** Mark songs needing improvement
 - **Filtering/Sorting:** By title, artist, energy, genre, era
-- **Bulk Import:** Upload PDFs with filename parsing or Gemini identification
+- **Bulk Import:** Upload PDFs with filename parsing or AI identification
 
 **Mobile UX:**
 - Swipe to edit/delete
@@ -1018,7 +1018,7 @@ Declarative routing with deep linking support.
 
 **Capabilities:**
 - **Filename Parsing:** `Song Title - Artist -- key=C -- capo=2.pdf`
-- **Gemini Identification:** If filename is unclear, AI identifies song from chart image
+- **AI Identification:** If filename is unclear, AI identifies song from chart image
 - **Batch Processing:** Mobile app sends up to 20 files per request
 - **Chunking:** Mobile app chunks selections into 20 files/request (2MB each)
 - **Duplicate Detection:** Byte-identical PDFs skipped
@@ -1068,9 +1068,9 @@ Declarative routing with deep linking support.
 **Purpose:** Auto-populate song details using AI.
 
 **Capabilities:**
-- **Gemini Integration:** Query for energy, genre, era, key, duration, theme
-- **Fallback Chain:** DB → Gemini → None
-- **Chart Identification:** Upload unknown PDF, Gemini extracts title/artist from image
+- **AI Integration:** Query for energy, genre, era, key, duration, theme
+- **Fallback Chain:** DB → AI Provider → None
+- **Chart Identification:** Upload unknown PDF, AI provider extracts title/artist from image
 - **Manual Override:** User can always edit metadata
 
 **API Endpoint:**
@@ -1080,7 +1080,7 @@ GET /api/v1/me/projects/{id}/repertoire/metadata?title=Wonderwall&artist=Oasis
 Response:
 {
   "data": {
-    "source": "gemini",
+    "source": "openai",
     "metadata": {
       "energy_level": "medium",
       "era": "90s",
@@ -1277,7 +1277,7 @@ CHART_RENDER_QUEUE=renders
 ```
 
 **Queue Topology:**
-- `imports` queue: `ProcessImportedChart` (Gemini identification)
+- `imports` queue: `ProcessImportedChart` (AI identification)
 - `renders` queue: `RenderChartPages` (PDF-to-image rendering)
 - `default` queue: all remaining lightweight jobs
 - Dedicated queue workers are recommended for `imports` and `renders`.
@@ -1308,7 +1308,7 @@ CHART_RENDER_QUEUE=renders
 **Responsibilities:**
 1. Download chart PDF from R2
 2. Extract first page as image
-3. Send image to Gemini API for identification
+3. Send image to the configured AI provider API for identification
 4. Parse response for title + artist
 5. Create or match `Song` record
 6. Link chart to song

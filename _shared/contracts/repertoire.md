@@ -14,7 +14,7 @@
 - `project_songs.theme`: nullable project override.
 - Effective theme: `project_songs.theme ?? songs.theme`.
 - Validation: nullable string, max `64` chars.
-- Gemini metadata enrichment only persists these canonical themes:
+- AI metadata enrichment only persists these canonical themes:
   `Love`, `Party`, `St. Patricks`, `Christmas`, `Halloween`, `Patriotic`.
 
 ---
