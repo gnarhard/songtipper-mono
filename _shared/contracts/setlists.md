@@ -56,6 +56,58 @@ Paste import:
 
 ---
 
+## Strategic generation
+
+- `POST /setlists/generate-strategic`
+- Separate from smart generation; existing smart flow remains unchanged.
+- Strategic setlists are generated on the backend (online-only client flow).
+
+Request shape:
+
+```json
+{
+  "name": "Strategic Set 2026-02-23",
+  "seed": 12345,
+  "sets": [
+    {
+      "name": "Set 1",
+      "song_count": 8,
+      "criteria": {
+        "energy_levels": ["low", "medium"],
+        "eras": [],
+        "genres": [],
+        "themes": []
+      }
+    }
+  ]
+}
+```
+
+Rules:
+- `sets` is required (`1..8`).
+- `song_count` is required (`1..50`) per set.
+- Criteria matching is:
+  - AND across fields (`energy_levels`, `eras`, `genres`, `themes`)
+  - OR within each field's values
+- Field matching for genre/theme is case-insensitive.
+- Selection excludes songs already chosen in earlier sets (no duplicates across generated sets).
+- If a set has fewer matches than `song_count`, backend returns a partial set.
+- If any set resolves to zero matches, backend returns `422` and no setlist is created.
+- Omitted/blank set names default to `Set 1`, `Set 2`, etc.
+
+Enums:
+- `energy_levels`: `low | medium | high`
+- `eras`: `50s | 60s | 70s | 80s | 90s | 2000s | 2010s | 2020s`
+- `genres`: `Jazz | Rock | Pop | Blues | Country | Classical | R&B | Hip Hop | Folk | Electronic | Soul | Reggae | Latin`
+- `themes`: `Love | Party | St. Patricks | Christmas | Halloween | Patriotic`
+
+Response:
+- `201` with `{ data, meta }`
+- `meta.generation.generation_version = strategic-v1`
+- Per-set metadata includes requested and selected song counts.
+
+---
+
 ## Performance sessions
 
 Routes:
