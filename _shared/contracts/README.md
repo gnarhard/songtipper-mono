@@ -33,7 +33,7 @@ Contract markdown files in this directory provide domain-oriented explanations a
 
 - **[repertoire.md](./repertoire.md)** - Song repertoire management
   - Add/edit/delete songs in repertoire
-  - Song metadata enrichment (Gemini)
+  - Song metadata enrichment (OpenAI default, Gemini optional)
   - Performance tracking
   - Bulk PDF import
 
