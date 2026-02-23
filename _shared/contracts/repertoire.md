@@ -13,9 +13,13 @@
 - `songs.theme`: nullable global theme.
 - `project_songs.theme`: nullable project override.
 - Effective theme: `project_songs.theme ?? songs.theme`.
-- Validation: nullable string, max `64` chars.
-- Gemini metadata enrichment only persists these canonical themes:
-  `Love`, `Party`, `St. Patricks`, `Christmas`, `Halloween`, `Patriotic`.
+- Canonical enum values:
+  `love`, `party`, `worship`, `story`, `st_patricks`, `christmas`, `halloween`, `patriotic`.
+- Validation is strict enum for all theme inputs (query/body/import tokens).
+- Invalid theme inputs now return `422` (intentional breaking change).
+- Metadata enrichment and API responses always emit canonical enum values.
+- Backfill migration (`*_backfill_song_themes_to_canonical_song_theme_enum.php`) applies
+  deterministic map values, and any unmapped/invalid legacy theme is forced to `story`.
 
 ---
 
@@ -49,7 +53,7 @@
   - max files per request: `20`
   - max size per PDF: `2MB`
 - Filename metadata supports: `key`, `capo`, `tuning`, `energy`, `era`, `genre`, `theme`.
-- Theme filename token example: `-- theme=Love`.
+- Theme filename token example: `-- theme=love`.
 
 ---
 

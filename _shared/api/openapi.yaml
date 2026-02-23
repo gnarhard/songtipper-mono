@@ -280,7 +280,8 @@ paths:
         - $ref: '#/components/parameters/ProjectId'
         - in: query
           name: theme
-          schema: { type: string }
+          schema:
+            $ref: '#/components/schemas/SongTheme'
           description: Effective theme filter (project override then global song theme).
       responses:
         '200':
@@ -289,6 +290,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedRepertoireResponse'
+        '422':
+          description: Validation failed (invalid theme filter)
     post:
       tags: [Repertoire]
       summary: Add repertoire song
@@ -375,8 +378,7 @@ paths:
                       title: { type: string }
                       artist: { type: string }
                       theme:
-                        type: string
-                        maxLength: 64
+                        $ref: '#/components/schemas/SongTheme'
       responses:
         '200':
           description: Import accepted
@@ -412,10 +414,13 @@ paths:
         - $ref: '#/components/parameters/ProjectId'
         - in: query
           name: theme
-          schema: { type: string }
+          schema:
+            $ref: '#/components/schemas/SongTheme'
       responses:
         '200':
           description: Learning songs list
+        '422':
+          description: Validation failed (invalid theme filter)
     post:
       tags: [Learning]
       summary: Add learning song
@@ -442,6 +447,10 @@ paths:
                     is found, backend stores a YouTube search URL fallback.
                 ultimate_guitar_url: { type: string, nullable: true }
                 notes: { type: string, nullable: true }
+                theme:
+                  allOf:
+                    - $ref: '#/components/schemas/SongTheme'
+                  nullable: true
       responses:
         '201':
           description: Learning song created
@@ -472,6 +481,10 @@ paths:
                     back to a YouTube search URL.
                 ultimate_guitar_url: { type: string, nullable: true }
                 notes: { type: string, nullable: true }
+                theme:
+                  allOf:
+                    - $ref: '#/components/schemas/SongTheme'
+                  nullable: true
       responses:
         '200':
           description: Learning song updated
@@ -513,7 +526,8 @@ paths:
                     break_seconds: { type: integer, nullable: true }
                     themes_include:
                       type: array
-                      items: { type: string }
+                      items:
+                        $ref: '#/components/schemas/SongTheme'
       responses:
         '201':
           description: Setlist generated
@@ -791,10 +805,13 @@ paths:
         - $ref: '#/components/parameters/ProjectSlug'
         - in: query
           name: theme
-          schema: { type: string }
+          schema:
+            $ref: '#/components/schemas/SongTheme'
       responses:
         '200':
           description: Public repertoire list
+        '422':
+          description: Validation failed (invalid theme filter)
 
   /public/projects/{projectSlug}/requests:
     post:
@@ -1142,13 +1159,29 @@ components:
         id: { type: integer }
         title: { type: string }
         artist: { type: string }
+    SongTheme:
+      type: string
+      enum:
+        [
+          love,
+          party,
+          worship,
+          story,
+          st_patricks,
+          christmas,
+          halloween,
+          patriotic,
+        ]
     RepertoireSong:
       type: object
       properties:
         id: { type: integer }
         project_id: { type: integer }
         song_id: { type: integer }
-        theme: { type: string, nullable: true }
+        theme:
+          allOf:
+            - $ref: '#/components/schemas/SongTheme'
+          nullable: true
         energy_level: { type: string, nullable: true }
         genre: { type: string, nullable: true }
         song:
@@ -1178,9 +1211,9 @@ components:
         title: { type: string, nullable: true }
         artist: { type: string, nullable: true }
         theme:
-          type: string
+          allOf:
+            - $ref: '#/components/schemas/SongTheme'
           nullable: true
-          maxLength: 64
         energy_level: { type: string, nullable: true }
         era: { type: string, nullable: true }
         genre: { type: string, nullable: true }
@@ -1253,8 +1286,7 @@ components:
         themes:
           type: array
           items:
-            type: string
-            enum: [Love, Party, St. Patricks, Christmas, Halloween, Patriotic]
+            $ref: '#/components/schemas/SongTheme'
     SetlistSongResource:
       type: object
       properties:

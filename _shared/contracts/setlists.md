@@ -53,6 +53,9 @@ Paste import:
 
 - `POST /setlists/generate-smart`
 - Stores generation metadata (`seed`, version, constraints) on the created setlist.
+- `constraints.themes_include[]` accepts only canonical theme enum values:
+  `love`, `party`, `worship`, `story`, `st_patricks`, `christmas`, `halloween`, `patriotic`.
+- Invalid theme values return `422`.
 
 ---
 
@@ -99,7 +102,7 @@ Enums:
 - `energy_levels`: `low | medium | high`
 - `eras`: `50s | 60s | 70s | 80s | 90s | 2000s | 2010s | 2020s`
 - `genres`: `Jazz | Rock | Pop | Blues | Country | Classical | R&B | Hip Hop | Folk | Electronic | Soul | Reggae | Latin`
-- `themes`: `Love | Party | St. Patricks | Christmas | Halloween | Patriotic`
+- `themes`: `love | party | worship | story | st_patricks | christmas | halloween | patriotic`
 
 Response:
 - `201` with `{ data, meta }`

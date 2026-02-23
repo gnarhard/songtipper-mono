@@ -12,6 +12,10 @@
 
 - `GET /repertoire`
 - Supports search/sort and metadata filters including `theme`.
+- `theme` is strict enum:
+  `love`, `party`, `worship`, `story`, `st_patricks`, `christmas`, `halloween`, `patriotic`.
+- Invalid `theme` filter values return `422`.
+- Repertoire `theme` fields in responses are always canonical enum values.
 
 ---
 
