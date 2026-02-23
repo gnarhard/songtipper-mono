@@ -354,7 +354,29 @@ When you finish a task, summarize with:
 
 ---
 
-## 12) If you are unsure
+## 12) Pull request template policy (required)
+
+All future pull requests MUST use the repository PR template:
+
+- `web/.github/pull_request_template.md`
+- `mobile_app/.github/pull_request_template.md`
+
+When opening PRs, always fill out the template completely. At minimum, every PR body must include:
+
+- `Why`
+- `Scope`
+- `What Changed`
+- `Contract / API Impact`
+- `Breaking Changes`
+- `Validation` (with exact commands run)
+- `Risk / Rollback`
+- `Checklist`
+
+If a template is missing in a repo, add it first in that repo, then open the feature PR using that template.
+
+---
+
+## 13) If you are unsure
 
 Do not guess silently. Inspect the codebase first.  
 If something is still ambiguous:
@@ -363,13 +385,13 @@ If something is still ambiguous:
 - Add a note in `_shared/` describing the open question
 - Suggest the next best verification step (where in code/config to confirm)
 
-## 13) Finish the job completely
+## 14) Finish the job completely
 
 If you can help it, don't ask the user to do anything in addition to your changes. Do everything. If a database needs migrating or anything of the sort, migrate it/do the task.
 
 ---
 
-## 14) Key features and capabilities (v1.2)
+## 15) Key features and capabilities (v1.2)
 
 ### Performance Sessions
 
