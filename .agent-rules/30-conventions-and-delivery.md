@@ -76,6 +76,7 @@ When you finish a task, summarize with:
 
 - Web PR template: `web/.github/pull_request_template.md`
 - Mobile PR template: `mobile_app/.github/pull_request_template.md`
+- PR creation is required after every completed task that changes a repo. Do not wait for the user to ask for it.
 
 Every PR body must include:
 

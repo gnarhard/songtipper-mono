@@ -15,13 +15,15 @@
 ## Mandatory worktree rules
 
 - Work in a git worktree, never in the main repository.
-- Create task worktrees under `../songtipper-worktrees/<track_id>/`.
-- `cd` into the worktree before doing any work.
+- Run `./scripts/create-worktree <track_id>` from the main `songtipper` checkout only.
+- The helper always creates the ignored path `./songtipper-worktrees/<track_id>` and branch `codex/<track_id>`.
+- Do not manually create a sibling `../songtipper-worktrees` directory or hand-type `git worktree add`.
+- Capture the absolute path printed by the helper, `cd` into it, and verify `pwd` is under `/songtipper-worktrees/` before doing any work.
 - If worktree creation fails, output `ERROR` and stop. Do not fall back to the main repo.
-- Keep the main `songtipper` directory untouched by agents.
+- The only allowed agent-created directory in the main `songtipper` checkout is the ignored `songtipper-worktrees/` root.
 - This root docs worktree may contain only `_shared/` and other shared docs. Do not assume `web/` or `mobile_app/` exist here.
 - If the task requires app code, create and use separate worktrees for `web/` and `mobile_app/` as needed.
-- When finished, create a PR for each repo you modified and share the PR link with the developer.
+- When finished, create a PR for each repo you modified without waiting to be asked, and share every PR link with the developer.
 
 ## Ignore
 
