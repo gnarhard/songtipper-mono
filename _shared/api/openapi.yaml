@@ -820,7 +820,7 @@ paths:
   /me/charts/{chartId}/pages/{page}/annotations/latest:
     get:
       tags: [Charts]
-      summary: Get latest annotation version (LWW per chart/page/user)
+      summary: Get saved chart annotation
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ChartId'
@@ -832,8 +832,8 @@ paths:
   /me/charts/{chartId}/pages/{page}/annotations:
     post:
       tags: [Charts]
-      summary: Save annotation version
-      description: Versioned + idempotent. `base_version_id` is stored for future merge support.
+      summary: Save chart annotation
+      description: Last-write-wins per chart/page/user. Each save replaces the prior saved annotation state.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ChartId'
@@ -848,14 +848,13 @@ paths:
               required: [local_version_id, created_at, strokes]
               properties:
                 local_version_id: { type: string }
-                base_version_id: { type: string, nullable: true }
                 created_at: { type: string, format: date-time }
                 strokes:
                   type: array
                   items: { type: object }
       responses:
         '201':
-          description: Annotation stored
+          description: Annotation saved
 
   /public/projects/{projectSlug}/repertoire:
     get:

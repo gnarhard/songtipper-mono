@@ -463,19 +463,20 @@ Pre-rendered PNG images of chart pages for fast mobile viewing.
 
 ### ChartAnnotationVersion
 
-Stores drawing annotations on chart pages (offline-first, conflict-free).
+Stores the latest saved drawing annotation on a chart page.
 
 **Fields:**
 - `id` (PK)
 - `chart_id` (FK to Chart)
 - `page_number` - Which page
 - `local_version_id` - UUID from client (idempotent writes)
-- `base_version_id` - Parent version for conflict resolution
 - `strokes` - JSON array of drawing strokes
 - `client_created_at` - Client timestamp
 - `created_at`, `updated_at`
 
-**Idempotency:** Duplicate `local_version_id` are ignored (200 response).
+**Constraint:** One row per `(owner_user_id, chart_id, page_number)`
+
+**Write policy:** Last write wins for the saved annotation state.
 
 ### Request
 
@@ -1370,9 +1371,9 @@ CHART_RENDER_QUEUE=renders
 ### Conflict Resolution
 
 **Annotations:**
-- UUID-based `local_version_id` ensures idempotency
-- Server accepts duplicate writes (returns 200 if already exists)
-- Client can safely retry without creating duplicates
+- UUID-based `local_version_id` identifies annotation save attempts
+- Server stores one saved annotation per chart page and overwrites prior state
+- Client can safely retry without creating duplicate rows
 
 **Other Writes:**
 - Last-write-wins (simple model for MVP)
