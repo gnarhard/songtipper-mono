@@ -42,14 +42,14 @@
 
 ---
 
-## Annotation Versions
+## Chart Annotations
 
-### Get latest annotation
+### Get saved annotation
 - **Method**: `GET`
 - **Path**: `/api/v1/me/charts/{chartId}/pages/{page}/annotations/latest`
-- Semantics: latest-selection (LWW) per `(user, chart, page)`.
+- Semantics: last-write-wins per `(user, chart, page)`.
 
-### Store annotation version
+### Save annotation
 - **Method**: `POST`
 - **Path**: `/api/v1/me/charts/{chartId}/pages/{page}/annotations`
 - **Headers**: `Idempotency-Key`
@@ -58,15 +58,14 @@
 ```json
 {
   "local_version_id": "uuid",
-  "base_version_id": "optional-parent-version",
   "created_at": "2026-02-15T18:00:00Z",
   "strokes": []
 }
 ```
 
 Notes:
-- `base_version_id` is retained for future merge strategies.
-- MVP conflict policy is versioned + idempotent with latest-selection semantics.
+- Each save replaces the previously saved annotation for that `(user, chart, page)`.
+- `local_version_id` remains client-provided so retries stay idempotent.
 
 ---
 
