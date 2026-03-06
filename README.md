@@ -16,6 +16,19 @@ Songtipper is split into multiple repositories:
 
 `web/` and `mobile_app/` are intentionally independent Git repositories and are ignored by this root repo.
 
+## Task worktree workflow
+
+Run the helper from the main `songtipper/` checkout. It creates task worktrees in the ignored `./songtipper-worktrees/` directory there and replaces the old sibling `../songtipper-worktrees` convention.
+
+```bash
+repo_root="$(pwd -P)"
+worktree_path="$(./scripts/create-worktree feature-name)"
+cd "$worktree_path"
+pwd  # Must resolve under /songtipper-worktrees/
+```
+
+If the helper prints `ERROR`, stop and fix that instead of working from the main checkout.
+
 ## Repository remotes
 
 - Monorepo: `git@github.com:gnarhard/songtipper.git`

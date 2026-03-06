@@ -117,18 +117,21 @@ Song Tipper/                         # Workspace root (songtipper-mono)
 
 ### Git Worktree Workflow
 
-All development happens from a workspace worktree (`../songtipper-worktrees/<track_id>`). Inside that worktree, `web/` and `mobile_app/` keep their own Git histories/remotes.
+All development happens from a workspace worktree under the main project checkout (`./songtipper-worktrees/<track_id>`). Run `./scripts/create-worktree <track_id>` from the main `songtipper/` checkout, never by manually typing `git worktree add`, and never by creating a sibling `../songtipper-worktrees` directory. Inside that worktree, `web/` and `mobile_app/` keep their own Git histories/remotes.
 
 ```bash
-# Create workspace worktree for feature branch
-git worktree add ../songtipper-worktrees/feature-name -b feature-name
+# From the main songtipper checkout, create a workspace worktree
+repo_root="$(pwd -P)"
+worktree_path="$(./scripts/create-worktree feature-name)"
 
 # Work in the workspace worktree
-cd ../songtipper-worktrees/feature-name
+cd "$worktree_path"
+pwd  # Must resolve under /songtipper-worktrees/
 
 # Commit and open PRs per repo (root, web, mobile_app) as needed.
 # Then clean up:
-git worktree remove ../songtipper-worktrees/feature-name
+cd "$repo_root"
+git worktree remove "$worktree_path"
 ```
 
 ---
@@ -1498,9 +1501,11 @@ CHART_RENDER_QUEUE=renders
 
 **Create Worktree:**
 ```bash
-# From main repo
-git worktree add ../songtipper-worktrees/feature-name -b feature-name
-cd ../songtipper-worktrees/feature-name
+# From the main songtipper checkout
+repo_root="$(pwd -P)"
+worktree_path="$(./scripts/create-worktree feature-name)"
+cd "$worktree_path"
+pwd  # Must resolve under /songtipper-worktrees/
 ```
 
 **Work in Worktree:**
@@ -1525,8 +1530,8 @@ gh pr create --title "Add mobile support for feature" --body "Description"
 
 **Cleanup:**
 ```bash
-cd ../../songtipper  # Back to main repo
-git worktree remove ../songtipper-worktrees/feature-name
+cd "$repo_root"
+git worktree remove "$worktree_path"
 ```
 
 ### Testing
