@@ -4,7 +4,7 @@ This file is intentionally short. Load only the rule files relevant to the task.
 
 Always read first:
 
-- `.agent-rules/00-worktrees-and-repos.md`
+- `.agent-rules/00-repos.md`
 
 Read as needed:
 
