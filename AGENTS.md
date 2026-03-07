@@ -16,7 +16,7 @@ Read as needed:
 If you need to edit app code, also read the repo-specific rules in the corresponding app worktree:
 
 - `web/AGENTS.md`
-- `mobile_app/.agent-rules/*.md`
+- `mobile_app/.agent-rules/**/*.md`
 
 Notes:
 
