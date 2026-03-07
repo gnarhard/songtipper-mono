@@ -1,5 +1,7 @@
 # Repos
 
+Always start from the main branch before doing any work.
+
 ## Repo map
 
 - `songtipper/web/`: Laravel API plus web routes for audience pages and performer signup/login
