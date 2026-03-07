@@ -227,7 +227,7 @@ paths:
           description: Not found (user does not have access to the project)
     post:
       tags: [Projects]
-      summary: Invite an existing SongTipper user to a project as a member
+      summary: Invite an existing Song Tipper user to a project as a member
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ProjectId'
