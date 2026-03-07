@@ -108,3 +108,9 @@ Stripe is used in two ways:
 2. Connect Express. Musicians sign up for a Connect Express account to take tips from audience members. Song Tipper is setup as a platform, not a marketplace, meaning money will not flow through Song Tipper before it reaches the musician's account. Song Tipper takes no fees nor charges any usage fees.
 
 If you see "Unable to initialize payment right now. Please try again." This means the user who signed up for their account in Stripe Connect Express signed up in the sandbox instead of the live account (or vice versa).
+
+## Admin designation
+
+Use the following command to add admin privileges to an account:
+
+`php artisan admin:designate admin@example.com`
