@@ -53,6 +53,12 @@ Canonical persistence rule:
   - `title = "Original Request"`
   - `artist = "Audience"`
 
+Tips-disabled behavior:
+- When project setting `is_accepting_tips=false`, client must send
+  `tip_amount_cents=0`.
+- Tip-only submissions are rejected while tips are disabled.
+- `min_tip_cents` is ignored while tips are disabled.
+
 Payout setup gate:
 - If owner payout setup is incomplete, request creation returns `422`:
 
@@ -63,5 +69,8 @@ Payout setup gate:
 }
 ```
 
+- Payout setup is only required when project `is_accepting_tips=true`.
 - If project requests are disabled independently, API returns `422` with
   message only (no `code` field).
+- If project tips are disabled independently, positive-tip and tip-only
+  submissions return `422` with message only (no `code` field).
