@@ -1132,13 +1132,22 @@ components:
         owner_user_id: { type: integer }
         performer_info_url: { type: string, nullable: true }
         performer_profile_image_url: { type: string, nullable: true }
-        min_tip_cents: { type: integer, minimum: 0 }
+        min_tip_cents:
+          type: integer
+          minimum: 0
+          description: Minimum tip amount when `is_accepting_tips=true`.
         is_accepting_requests:
           type: boolean
           description: |
             Performer request gate. Backend may auto-enable this when payout
             status transitions to `enabled`, and auto-disable it when payout
             status regresses from `enabled`.
+        is_accepting_tips:
+          type: boolean
+          description: |
+            Tip gate for public audience flows. When `false`, requests remain
+            available with `tip_amount_cents=0`, tip-only support is disabled,
+            and payout setup is not required to keep requests open.
         is_accepting_original_requests: { type: boolean }
         show_persistent_queue_strip: { type: boolean }
         chart_viewport_prefs:
@@ -1178,6 +1187,7 @@ components:
           maxLength: 2048
         min_tip_cents: { type: integer, minimum: 0 }
         is_accepting_requests: { type: boolean }
+        is_accepting_tips: { type: boolean }
         is_accepting_original_requests: { type: boolean }
         show_persistent_queue_strip: { type: boolean }
         remove_performer_profile_image: { type: boolean }

@@ -53,6 +53,7 @@ Route prefix: `/api/v1/auth`
         "performer_profile_image_url": "https://example.com/storage/performers/1/profile.png",
         "min_tip_cents": 500,
         "is_accepting_requests": true,
+        "is_accepting_tips": true,
         "is_accepting_original_requests": true,
         "show_persistent_queue_strip": true,
         "owner_user_id": 1,
