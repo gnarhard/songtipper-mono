@@ -28,7 +28,7 @@ const webJsOutputPath = path.join(
   'generated_theme_tokens.js',
 );
 
-test('theme token generator emits the pinned sunshade and text tokens', () => {
+test('theme token generator emits the pinned apricot and text tokens', () => {
   execFileSync('node', ['scripts/generate_theme_tokens.mjs'], {
     cwd: rootDir,
     stdio: 'pipe',
@@ -40,7 +40,7 @@ test('theme token generator emits the pinned sunshade and text tokens', () => {
 
   assert.match(
     dartOutput,
-    /static const Color sunshade_500 = Color\(0xFFFFB375\);/,
+    /static const Color apricot_500 = Color\(0xFFFFB375\);/,
   );
   assert.match(
     dartOutput,
@@ -56,10 +56,10 @@ test('theme token generator emits the pinned sunshade and text tokens', () => {
   );
 
   assert.match(webCssOutput, /--st-text: #302938;/);
-  assert.match(webCssOutput, /--st-sunshade: #ffb375;/);
+  assert.match(webCssOutput, /--st-apricot: #ffb375;/);
   assert.match(webCssOutput, /--st-text: #dcecf4;/);
 
-  assert.match(webJsOutput, /sunshade/);
+  assert.match(webJsOutput, /apricot/);
   assert.match(webJsOutput, /success/);
   assert.doesNotMatch(webJsOutput, /amber/);
 });

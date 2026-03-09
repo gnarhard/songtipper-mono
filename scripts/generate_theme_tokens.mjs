@@ -180,7 +180,7 @@ const webJsContent = `// GENERATED FILE - DO NOT EDIT BY HAND.
 
 export const tailwindPalettes = ${JSON.stringify(
   {
-    sunshade: tokens.palettes.sunshade,
+    apricot: tokens.palettes.apricot,
     success: tokens.palettes.success,
     accent: tokens.palettes.accent,
     neutral: tokens.palettes.neutral,

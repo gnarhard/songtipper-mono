@@ -1,6 +1,8 @@
+
+
 {
   "palettes": {
-    "sunshade": {
+    "apricot": {
       "50": "#fff7ef",
       "100": "#ffead8",
       "200": "#ffd8bc",
@@ -73,8 +75,8 @@
       "textMuted": "#5d6178",
       "line": "rgba(48, 41, 56, 0.16)",
       "lineStrong": "rgba(48, 41, 56, 0.28)",
-      "sunshade": "#ffb375",
-      "sunshadeEmphasis": "#e88d4d",
+      "apricot": "#ffb375",
+      "apricotEmphasis": "#e88d4d",
       "accent": "#302938",
       "accentSoft": "rgba(48, 41, 56, 0.12)",
       "waveBandPrimary": "rgba(48, 41, 56, 0.07)",
@@ -91,8 +93,8 @@
       "textMuted": "#cddce3",
       "line": "rgba(220, 236, 244, 0.16)",
       "lineStrong": "rgba(220, 236, 244, 0.28)",
-      "sunshade": "#ffb375",
-      "sunshadeEmphasis": "#ffd8bc",
+      "apricot": "#ffb375",
+      "apricotEmphasis": "#ffd8bc",
       "accent": "#dcecf4",
       "accentSoft": "rgba(220, 236, 244, 0.10)",
       "waveBandPrimary": "rgba(220, 236, 244, 0.08)",
