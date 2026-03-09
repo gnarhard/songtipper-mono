@@ -6,8 +6,11 @@ Authentication endpoints are **public** (no auth required for login, password re
 
 Route prefix: `/api/v1/auth`
 
+All auth write endpoints accept an optional `Idempotency-Key` header.
+
 ## Performer Billing Setup (web)
 
+- New web signups must verify their email address before they can reach billing setup or the performer dashboard.
 - After web registration, performers must complete billing setup before accessing the web dashboard.
 - Available billing plans:
   - `basic_monthly` at `$4.99/month`
@@ -53,6 +56,7 @@ Route prefix: `/api/v1/auth`
         "performer_profile_image_url": "https://example.com/storage/performers/1/profile.png",
         "min_tip_cents": 500,
         "is_accepting_requests": true,
+        "is_accepting_tips": true,
         "is_accepting_original_requests": true,
         "show_persistent_queue_strip": true,
         "owner_user_id": 1,
@@ -77,6 +81,18 @@ Route prefix: `/api/v1/auth`
   "message": "Invalid credentials."
 }
 ```
+
+### Error response (`403`)
+
+```json
+{
+  "message": "Please verify your email address before signing in."
+}
+```
+
+**Notes:**
+- Mobile app signup remains website-based.
+- Newly created accounts must confirm email ownership before token login succeeds.
 
 ---
 

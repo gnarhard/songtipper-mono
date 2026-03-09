@@ -58,6 +58,7 @@ Core fields:
 - `performer_profile_image_url` (nullable)
 - `min_tip_cents`
 - `is_accepting_requests`
+- `is_accepting_tips`
 - `is_accepting_original_requests`
 - `show_persistent_queue_strip`
 - `chart_viewport_prefs` (deprecated, nullable object)
@@ -69,11 +70,12 @@ Payout readiness fields:
 
 ---
 
-## Payout gate behavior for requests toggle
+## Payout gate behavior for requests and tips
 
 When updating a project:
-- If payload includes `"is_accepting_requests": true` and owner payout setup is
-  not complete, API returns `422`:
+- If the resulting project state would have both `"is_accepting_requests": true`
+  and `"is_accepting_tips": true` while owner payout setup is not complete, API
+  returns `422`:
 
 ```json
 {
@@ -82,13 +84,16 @@ When updating a project:
 }
 ```
 
+- If `"is_accepting_tips": false`, requests may stay open without payout setup.
 - `payout_setup_complete` is true only when owner payout account status is
   `enabled`.
 - When payout status transitions from non-`enabled` to `enabled`, backend
-  automatically flips owned projects to `is_accepting_requests=true` so
-  performers can immediately take requests after onboarding completion.
+  automatically flips owned projects with `is_accepting_tips=true` to
+  `is_accepting_requests=true` so performers can immediately take requests after
+  onboarding completion.
 - When payout status regresses (for example from Stripe `account.updated`), web
-  backend can force `is_accepting_requests` to `false` for owned projects.
+  backend can force `is_accepting_requests` to `false` for owned projects that
+  still have `is_accepting_tips=true`.
 
 ---
 
@@ -108,6 +113,7 @@ project while sharing one account-level Stripe wallet across all owner projects.
 - `performer_info_url`
 - `min_tip_cents`
 - `is_accepting_requests`
+- `is_accepting_tips`
 - `is_accepting_original_requests`
 - `show_persistent_queue_strip`
 - `remove_performer_profile_image`

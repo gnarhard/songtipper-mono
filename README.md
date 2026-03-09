@@ -1,33 +1,20 @@
-# Songtipper Monorepo
+# Song Tipper Monorepo
 
-SongTipper is a performer-focused app to manage songs, setlists, charts and live audience requests.
+Song Tipper is a performer-focused app to manage songs, setlists, charts and live audience requests.
 
 - Purpose: Manage repertoire (songs, metadata, tags), create setlists, store charts (PDFs/images), and handle audience song requests / live queue syncing.
-- Architecture: Backend API + web UI in backend/, performer mobile app in frontend/ (Flutter), and shared API/contracts in shared/. - Key features: Repertoire & metadata, setlist building, chart/file uploads, audience request queue, project-scoped auth, offline-first mobile behavior. 
-- Data & contracts: Shared API schema / rules live in shared/ (source of truth for backend ↔ mobile). 
-- Auth & scope: Token-based authentication with authorization scoped to a Project/band. 
+- Architecture: Backend API + web UI in backend/, performer mobile app in frontend/ (Flutter), and shared API/contracts in shared/. - Key features: Repertoire & metadata, setlist building, chart/file uploads, audience request queue, project-scoped auth, offline-first mobile behavior.
+- Data & contracts: Shared API schema / rules live in shared/ (source of truth for backend ↔ mobile).
+- Auth & scope: Token-based authentication with authorization scoped to a Project/band.
 - Scale & imports: Designed to support bulk imports (see database/seeders), and integrates with external metadata/enrichment as needed.
 
-Songtipper is split into multiple repositories:
+Song Tipper is split into multiple repositories:
 
 - `songtipper/` (this repo): shared files, tooling, and top-level coordination.
 - `songtipper/web/`: Laravel API + marketing site.
 - `songtipper/mobile_app/`: Flutter mobile app.
 
 `web/` and `mobile_app/` are intentionally independent Git repositories and are ignored by this root repo.
-
-## Task worktree workflow
-
-Run the helper from the main `songtipper/` checkout. It creates task worktrees in the ignored `./songtipper-worktrees/` directory there and replaces the old sibling `../songtipper-worktrees` convention.
-
-```bash
-repo_root="$(pwd -P)"
-worktree_path="$(./scripts/create-worktree feature-name)"
-cd "$worktree_path"
-pwd  # Must resolve under /songtipper-worktrees/
-```
-
-If the helper prints `ERROR`, stop and fix that instead of working from the main checkout.
 
 ## Repository remotes
 
@@ -112,3 +99,20 @@ From the monorepo root:
 ```bash
 ./start-mcp-servers.sh
 ```
+
+## Stripe Integration
+
+Stripe is used in two ways:
+
+1. Standard Stripe subscription products for Basic and Pro plans. 30 days free creates a "payment intent."
+2. Connect Express. Musicians sign up for a Connect Express account to take tips from audience members. Song Tipper is setup as a platform, not a marketplace, meaning money will not flow through Song Tipper before it reaches the musician's account. Song Tipper takes no fees nor charges any usage fees.
+
+If you see "Unable to initialize payment right now. Please try again." This means the user who signed up for their account in Stripe Connect Express signed up in the sandbox instead of the live account (or vice versa).
+
+Stripe Connect platform has a payment method and the Stripe account also has different payment methods. The regular stripe account will display when musicians sign up and when they update their billing. The Connect platform payment methods will show for the musician's when they take payment from the audience.
+
+## Admin designation
+
+Use the following command to add admin privileges to an account:
+
+`php artisan admin:designate admin@example.com`
