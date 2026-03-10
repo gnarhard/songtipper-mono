@@ -111,6 +111,12 @@ If you see "Unable to initialize payment right now. Please try again." This mean
 
 Stripe Connect platform has a payment method and the Stripe account also has different payment methods. The regular stripe account will display when musicians sign up and when they update their billing. The Connect platform payment methods will show for the musician's when they take payment from the audience.
 
+### Stripe Webhook testing
+
+First run: `stripe login`
+
+Then, run this: `stripe listen --forward-to https://songtipper.test/stripe/webhook`
+
 ## Admin designation
 
 Use the following command to add admin privileges to an account:
