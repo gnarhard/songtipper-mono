@@ -601,7 +601,7 @@ paths:
   /me/projects/{projectId}/repertoire/copy-from:
     post:
       tags: [Repertoire]
-      summary: Copy repertoire from another project
+      summary: Copy selected repertoire songs from another project
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ProjectId'
@@ -612,12 +612,16 @@ paths:
           application/json:
             schema:
               type: object
-              required: [source_project_id]
+              required: [source_project_id, source_project_song_ids]
               properties:
                 source_project_id: { type: integer }
+                source_project_song_ids:
+                  type: array
+                  minItems: 1
+                  items: { type: integer }
                 include_charts: { type: boolean, default: false }
       responses:
-        '200':
+        '201':
           description: Copy complete
 
   /me/projects/{projectId}/learning-songs:
