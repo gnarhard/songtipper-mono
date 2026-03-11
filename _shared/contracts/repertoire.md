@@ -78,13 +78,16 @@
 ```json
 {
   "source_project_id": 1,
+  "source_project_song_ids": [10, 11, 12],
   "include_charts": true
 }
 ```
 
 Behavior:
-- Copies repertoire rows and overrides.
-- If `include_charts=true`, copies chart linkage for the destination project.
+- Copies only the selected source `project_song` rows and their overrides.
+- `source_project_song_ids` must all belong to `source_project_id`.
+- If `include_charts=true`, copies linked chart PDFs and rendered chart images
+  for the selected songs into the destination project.
 
 ---
 
