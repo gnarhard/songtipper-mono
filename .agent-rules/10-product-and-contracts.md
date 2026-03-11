@@ -15,7 +15,7 @@ SongTipper helps performers manage:
 - Performance sessions with completion tracking and smart reordering
 - Charts with PDF uploads, rendering, annotations, and page viewport preferences
 - Audience requests with tips and Stripe integration
-- Audience profiles, achievements, and live leaderboards
+- Private audience identity for repeat-request tracking only
 
 Web handles authenticated APIs, persistence, uploads, and audience-facing routes. Mobile is the performer app and should remain offline-friendly where possible.
 

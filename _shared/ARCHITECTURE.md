@@ -19,7 +19,7 @@
 12. [Background Jobs & Async Processing](#background-jobs--async-processing)
 13. [Offline-First Strategy](#offline-first-strategy)
 14. [Payment Integration](#payment-integration)
-15. [Audience Features & Achievements](#audience-features--achievements)
+15. [Audience Request Experience](#audience-request-experience)
 16. [Development Workflow](#development-workflow)
 17. [Scaling & Performance Considerations](#scaling--performance-considerations)
 
@@ -44,7 +44,7 @@
   - Request songs with optional tips
   - See live queue of upcoming requests
   - Support performers directly without song requests (tip jar)
-  - Gamified engagement with fun achievements
+  - Use a private browser-based identity for repeat requests without public profiles
 
 ### Core Value Proposition
 
@@ -68,7 +68,7 @@ Song Tipper/                         # Workspace root (songtipper-mono)
 │   ├── contracts/                   # Endpoint specifications
 │   │   └── setlists.md
 │   ├── api-contract-rules.md        # API design principles
-│   └── audience-achievements.md     # Achievement definitions
+│   └── audience-achievements.md     # Retired audience gamification notes
 │
 ├── web/                             # Laravel backend (songtipper_web repo)
 │   ├── app/
@@ -578,15 +578,15 @@ Tracks audience member identity via cookie token.
 - `token` - Long-lived cookie value
 - `created_at`, `updated_at`
 
-### AudienceAchievement
+### AudienceAchievement (legacy)
 
-Gamification: awarded achievements for audience engagement.
+Historical record of retired audience achievements. No public audience flow, profile, or leaderboard depends on this model now.
 
 **Fields:**
 - `id` (PK)
 - `audience_profile_id` (FK to AudienceProfile)
 - `project_id` (FK to Project)
-- `achievement_type` - e.g., "broke_the_seal", "big_spender"
+- `achievement_type` - historical code, e.g., legacy award labels
 - `awarded_at`
 - `created_at`, `updated_at`
 
@@ -1044,7 +1044,7 @@ Declarative routing with deep linking support.
 - **Request Song:** With optional tip and note
 - **Tip-Only:** Support without requesting a song
 - **Live Queue:** See what's up next
-- **Achievements:** Gamified engagement tracking
+- **Audience Identity:** Cookie-backed repeat-request linking with no public profile or leaderboard
 
 **Payment Flow:**
 1. User selects song and tip amount
@@ -1109,8 +1109,8 @@ Response:
 
 **Tracking:**
 - `audience_profile` identified by long-lived cookie token
-- `audience_achievement` stores awarded achievements
-- Notifications shown on request confirmation or repertoire page
+- `audience_achievement` is retained only as legacy data from retired gamification work
+- No achievement notifications are shown on request confirmation or repertoire pages
 
 ---
 
@@ -1434,60 +1434,45 @@ CHART_RENDER_QUEUE=renders
 
 ---
 
-## Audience Features & Achievements
+## Audience Request Experience
 
 ### Public Repertoire Page
 
-**URL:** `/{projectSlug}/repertoire`
+**URL:** `/project/{projectSlug}`
 
 **Features:**
 - Search by title/artist
-- Filter by energy, genre, era
-- Sort by title, artist, highest active tip
+- Filter by genre, era, and theme
+- Sort by title, artist, era, genre, and top tipped
 - Pagination (50 items/page)
-- Shows active tip amounts for each song
-- Click song → Request modal
+- Shows song-level social proof like top active tip amounts and "Hot tonight" badges
+- Explains queue rules with performer-trust copy
+- Click song → request page
 
 ### Request Flow
 
-**URL:** `/{projectSlug}/request/{songId}`
+**URL:** `/project/{projectSlug}/request/{songId}`
 
 **Form:**
 - Song details (pre-filled)
-- Tip amount (slider, min: project minimum)
+- Tip amount (preset and custom amounts, min: project minimum)
 - Optional note (max 500 chars)
 - Payment method selector (Card, Apple Pay, Google Pay)
+- Exact queue-position guidance when the selected tip can or cannot take `#1`
 
 **Submission:**
 1. Validate tip meets minimum
-2. Create pending request
-3. Initiate Stripe payment
-4. On success → Show confirmation + achievement notification
-5. On failure → Show error, allow retry
+2. Create or resolve the private audience identity from the browser token
+3. Initiate Stripe payment when a payment is required
+4. On success for song requests → Redirect to the repertoire page with the exact queue position
+5. On success for tip-only payments → Show confirmation with a CTA back to the repertoire flow
+6. On failure → Show error, allow retry
 
-### Achievements System
+### Retired audience gamification
 
-**Tracking:**
-- `Song Tipper_audience_token` cookie (long-lived, 1 year)
-- `AudienceProfile` created on first visit
-- `AudienceAchievement` records awards
-
-**Achievement Triggers:**
-- **Broke the Seal:** First tip for this audience profile
-- **Big Spender Energy:** Single tip ≥ $50
-- **Certified No-Requests, Just Vibes:** First tip-only submission
-- **Speed Demon:** 3 tips within 2 minutes
-- **Mindful of Your Manners:** Note contains "please"
-- **Song Whisperer:** Requested song is next in queue
-- **Economy Class Patron:** Tip between $12-$18
-- **Front-Row CFO:** Total tips ≥ $100
-- **The "I Know This One!" Tax:** Tip within 10 seconds of song starting (future: needs performer integration)
-- **Inspector General:** Clicked "learn more about performer" link
-
-**Notification:**
-- Modal overlay with animated confetti
-- Achievement icon + title + description
-- "Share" button (future: social media integration)
+- Public audience profiles, leaderboards, and achievement notifications were removed on March 6, 2026
+- Audience identity remains private and browser-scoped
+- See [`_shared/audience-achievements.md`](./audience-achievements.md) for the retirement note
 
 ---
 
@@ -1662,7 +1647,7 @@ flutter test       # Unit/widget tests
 4. **Social Features:**
    - Performer profiles (bio, social links, upcoming shows)
    - Audience accounts (save payment methods, view history)
-   - Share achievements on social media
+   - Share performer pages or setlists on social media
 
 5. **API v2:**
    - GraphQL endpoint for more efficient queries
