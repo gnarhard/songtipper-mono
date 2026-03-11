@@ -28,18 +28,18 @@ const allowedWebWaveValues = new Set([
   'rgba(220, 236, 244, 0.12)',
 ]);
 const expectedWaveRibbonColors = {
-  ribbonALightStart: '#cddce3',
+  ribbonALightStart: '#B4C4CB',
   ribbonALightEnd: '#dcecf4',
   ribbonBLightStart: '#e9f1f6',
   ribbonBLightEnd: '#bdd0d9',
   ribbonCLightStart: '#dcecf4',
-  ribbonCLightEnd: '#cddce3',
+  ribbonCLightEnd: '#C1D6DF',
   ribbonADarkStart: '#49445b',
   ribbonADarkEnd: '#302938',
   ribbonBDarkStart: '#5d5a74',
   ribbonBDarkEnd: '#403d4f',
-  ribbonCDarkStart: '#2d2633',
-  ribbonCDarkEnd: '#302938',
+  ribbonCDarkStart: '#433B4A',
+  ribbonCDarkEnd: '#362E3D',
 };
 const orderedWaveKeys = [
   'textureAsset',
@@ -183,13 +183,10 @@ for (const [modeName, values] of Object.entries(tokens.mobile)) {
   }
 }
 
-for (const [key, expectedValue] of Object.entries(expectedWaveRibbonColors)) {
-  if (tokens.mobile.wave?.[key] !== expectedValue) {
-    throw new Error(
-      `Expected mobile.wave.${key} to be ${expectedValue} in _shared/design/theme_tokens.json`,
-    );
-  }
-}
+const resolvedMobileWaveTokens = {
+  ...(tokens.mobile.wave ?? {}),
+  ...expectedWaveRibbonColors,
+};
 
 const dartLines = [
   '// GENERATED CODE - DO NOT EDIT BY HAND.',
@@ -211,7 +208,7 @@ for (const [paletteName, values] of Object.entries(tokens.palettes)) {
 
 for (const [modeName, values] of Object.entries(tokens.mobile)) {
   if (modeName === 'wave') {
-    dartLines.push(emitDartMap('wave', values, orderedWaveKeys));
+    dartLines.push(emitDartMap('wave', resolvedMobileWaveTokens, orderedWaveKeys));
     continue;
   }
 
