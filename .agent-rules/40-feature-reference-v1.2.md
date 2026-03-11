@@ -49,19 +49,9 @@
 
 ## Audience features
 
-### Profile and achievements
-
-- Route: `GET /public/projects/{slug}/audience/me`
-- Uses the `songtipper_audience_token` cookie-backed identity
-- Display names are deterministic `Adjective + Animal`
-- Returns profile, totals, and achievements
-
-### Who's here leaderboard
-
-- Route: `GET /public/projects/{slug}/audience/leaderboard`
-- Uses the active performance session
-- Ranks by `SUM(tip_amount_cents)` during the session
-- Stable tie-breaker: `joined_at ASC`
+- Public audience profiles, leaderboards, and achievement notifications were retired on March 6, 2026.
+- Audience identity remains internal-only through the `songtipper_audience_token` cookie for linking repeat requests in the same browser.
+- See `_shared/audience-achievements.md` for the retired audience-gamification note.
 
 ## Request creation
 
