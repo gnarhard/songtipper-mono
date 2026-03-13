@@ -12,6 +12,7 @@ Read as needed:
 - `.agent-rules/20-execution-and-validation.md` for the working process, validation steps, commands, and file layout hints.
 - `.agent-rules/30-conventions-and-delivery.md` for JSON/date/pagination/idempotency conventions, PR requirements, and delivery expectations.
 - `.agent-rules/40-feature-reference-v1.2.md` for the current feature and endpoint capability reference.
+- `.agent-rules/50-mcp-servers.md` for MCP server configuration and discovery.
 
 If you need to edit app code, also read the repo-specific rules in the corresponding app worktree:
 
