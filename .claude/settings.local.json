@@ -52,7 +52,9 @@
       "Bash(tee:*)",
       "WebFetch(domain:discuss.ai.google.dev)",
       "Bash(git log:*)",
-      "Bash(dart analyze:*)"
+      "Bash(dart analyze:*)",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__navigate_page"
     ],
     "read": {
       "deny": [
