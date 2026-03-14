@@ -91,6 +91,7 @@ Notes:
 - `GET /api/v1/me/charts/{chartId}/render-status`
 - `GET /api/v1/me/charts/{chartId}/signed-url`
 - `GET /api/v1/me/charts/{chartId}/page?page={page}&theme={light|dark}`
+- `GET /api/v1/me/charts/{chartId}/page-urls?theme={light|dark}`
 - `POST /api/v1/me/charts/{chartId}/render` (`Idempotency-Key` supported)
 - `DELETE /api/v1/me/charts/{chartId}` (`Idempotency-Key` supported)
 
@@ -119,3 +120,20 @@ Notes:
 - `failed` with `render_metadata_inconsistent` means render rows and chart metadata (`page_count`, `has_renders`) disagree.
 - Clients should prefer this endpoint over per-page render URL checks to reduce request fan-out.
 - Chart resource payloads now include `updated_at` so clients can invalidate cached page images when an in-place chart replacement lands.
+- Pass `?verify_files=true` to enable per-file storage existence checks. Omitted by default for performance.
+
+### Batch Page URLs Endpoint
+
+- **Method**: `GET`
+- **Path**: `/api/v1/me/charts/{chartId}/page-urls?theme={light|dark}`
+- **Purpose**: Fetch signed URLs for all chart pages in a single request, reducing N round trips to 1.
+- **Response**:
+  - `pages`: array of page objects
+    - `page`: integer (1-indexed page number)
+    - `url`: string (signed URL, 15-minute TTL)
+    - `served_theme`: string (only present when served theme differs from requested theme)
+  - `updated_at`: nullable ISO 8601 string
+
+Notes:
+- Returns `404` if no renders are available.
+- Clients should prefer this endpoint over per-page `page` requests when loading all chart pages.

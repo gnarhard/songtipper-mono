@@ -1,4 +1,4 @@
-# Setlists + Performance API Contracts (v1.2)
+# Setlists + Performance API Contracts (v1.3)
 
 ## Scope and auth
 
@@ -14,11 +14,24 @@ Setlists now only represent containers for sets.
 Generation method selection happens when creating each set.
 
 Setlist routes:
-- `GET /setlists`
+- `GET /setlists` — query param `?archived=true` returns archived setlists;
+  default (no param or `archived=false`) returns active setlists only.
 - `POST /setlists`
 - `GET /setlists/{setlistId}`
 - `PUT /setlists/{setlistId}`
-- `DELETE /setlists/{setlistId}`
+- `POST /setlists/{setlistId}/archive` — sets `archived_at` to now.
+  Returns `422` if already archived.
+- `POST /setlists/{setlistId}/restore` — clears `archived_at`.
+  Returns `422` if not archived.
+- `DELETE /setlists/{setlistId}` — permanent delete (prefer archive).
+
+Setlist resource fields:
+- `id`, `project_id`, `name`, `notes`, `folder`, `created_at`,
+  `archived_at`, `generation_meta`, `sets`.
+- `folder`: nullable string (max 255). Setlists with the same `folder`
+  value are grouped together in the mobile UI.
+- `archived_at`: nullable ISO-8601 timestamp. Non-null means the setlist
+  is archived and hidden from the default list view.
 
 Removed (breaking change):
 - `POST /setlists/generate-smart`
