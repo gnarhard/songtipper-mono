@@ -58,7 +58,8 @@
       "Bash(for f:*)",
       "Bash(do echo:*)",
       "Bash(find /Users/gerhard/Code/Sites/Valet/songtipper -path */vendor -prune -o -path */.git -prune -o -type f \\\\\\(-name *.conf -o -name *.toml -o -name *.yaml -o -name *.yml \\\\\\) -print)",
-      "Bash(grep -E \"\\\\.\\(dart\\)$\")"
+      "Bash(grep -E \"\\\\.\\(dart\\)$\")",
+      "Bash(find /Users/gerhard/Code/Sites/Valet/songtipper -type f \\\\\\(-name test_*.dart -o -name *_test.dart -o -name *_spec.php -o -name test*.php \\\\\\))"
     ],
     "read": {
       "deny": [
