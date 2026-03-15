@@ -934,6 +934,32 @@ Declarative routing with deep linking support.
 - **Fonts:** Google Fonts
 - **Colors:** Material Design 3 color scheme
 
+### Layout Width Constraint (Required)
+
+All mobile app presentation surfaces must align content to
+`AppTheme.contentMaxWidth`.
+
+**Scope (required):**
+- Headers and app bars
+- Screen body content
+- Footer content and bottom action areas
+- Navigation surfaces (bottom navigation bars, top navigation rows, and
+   similar shell navigation containers)
+
+**Rule:**
+- Do not hardcode ad-hoc max widths for primary screen layout containers.
+- Use `AppTheme.contentMaxWidth` as the single source of truth.
+- Keep decorative/background layers full-bleed only when needed, but place all
+   interactive/readable content inside a container constrained to
+   `AppTheme.contentMaxWidth`.
+
+**Implementation guidance:**
+- App bars and header content should use the shared max-width app bar pattern.
+- Bodies should be wrapped in a centered constrained container using
+   `AppTheme.contentMaxWidth`.
+- Bottom and navigation sections should also center and constrain their content
+   to `AppTheme.contentMaxWidth`.
+
 ---
 
 ## Key Features
