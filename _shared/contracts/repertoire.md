@@ -1,4 +1,4 @@
-# Repertoire API Contracts (v1.2)
+# Repertoire API Contracts (v1.3)
 
 ## Scope and auth
 
@@ -32,6 +32,17 @@ Plan limits:
   when the Basic cap would be exceeded.
 - Bulk import stays `200 OK` and reports skipped items via `limit_reached`
   counters and per-song `action=limit_reached`.
+
+Song versions:
+- Field: `version_label`
+- Scope: stored on `project_songs`
+- Type: nullable string (max 50 chars) in API; empty string `''` in DB for primary
+- API representation: `null` for the primary/default version, non-empty string
+  for alternate versions (e.g., `"Acoustic"`, `"Solo"`, `"Electric"`)
+- Unique constraint: `(project_id, song_id, version_label)`
+- Each version has independent metadata (key, capo, tuning, notes, etc.) and charts
+- Alternate versions count against the repertoire limit
+- Public repertoire only shows primary versions
 
 Instrumental flag:
 - Field: `instrumental`
@@ -101,6 +112,29 @@ Demote to learn:
 - Response: `{ "message": "Song demoted to learning list.", "demoted": true }`
 - If the song already exists in the learning list, the existing record is
   updated (no duplicate).
+
+### Create version
+- `POST /repertoire/{projectSongId}/versions`
+- Creates an alternate version of an existing repertoire song.
+- Body:
+
+```json
+{
+  "version_label": "Acoustic",
+  "performed_musical_key": "G",
+  "tuning": "Open G",
+  "capo": 0,
+  "copy_charts": true
+}
+```
+
+- `version_label` is required (string, max 50 chars).
+- All metadata fields from Create are accepted (except `song_id`/`title`/`artist`).
+- Optional `copy_charts` (boolean, default `false`): clones charts from the
+  source version to the new version.
+- Returns `409` if a version with the same label already exists for the song.
+- Returns `422` with `code=repertoire_limit_reached` if plan limit exceeded.
+- Update via `PUT /repertoire/{projectSongId}` supports `version_label` to rename.
 
 ### Delete
 - `DELETE /repertoire/{projectSongId}`
