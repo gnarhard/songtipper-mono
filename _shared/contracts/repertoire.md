@@ -92,6 +92,16 @@ Project-song notes:
 - Validation: max `3000` characters
 - Response: included on repertoire list and single-song payloads
 
+Demote to learn:
+- Field: `demote_to_learn`
+- Type: boolean (optional)
+- When `true`: creates a `ProjectLearningSong` for the underlying song (with
+  auto-resolved YouTube and Ultimate Guitar URLs), then deletes the
+  `ProjectSong` from the repertoire.
+- Response: `{ "message": "Song demoted to learning list.", "demoted": true }`
+- If the song already exists in the learning list, the existing record is
+  updated (no duplicate).
+
 ### Delete
 - `DELETE /repertoire/{projectSongId}`
 
