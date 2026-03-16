@@ -71,7 +71,17 @@
       "Bash(git submodule:*)",
       "Bash(2)",
       "Bash(find /Users/gerhard/Code/Sites/Valet/songtipper -type f \\\\\\(-name *.vue -o -name *.jsx -o -name *.tsx -o -name *.ts \\\\\\))",
-      "Bash(grep -E \"\"\"test\"\"|\"\"lint\"\"|\"\"format\"\"\" package.json)"
+      "Bash(grep -E \"\"\"test\"\"|\"\"lint\"\"|\"\"format\"\"\" package.json)",
+      "Bash(docker compose:*)",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__take_screenshot",
+      "Bash(curl -sk -D - -o /dev/null -X POST -H \"Content-Type: application/json\" -H \"Accept: application/json\" https://songtipper.test/stripe/webhook)",
+      "Bash(curl -sk -X POST -H \"Content-Type: application/json\" -H \"Accept: application/json\" -H \"Origin: https://songtipper.test\" -d '{\"\"email\"\":\"\"test@test.com\"\",\"\"password\"\":\"\"wrong\"\"}' https://songtipper.test/api/v1/auth/login)",
+      "Bash(curl -sk -D - -o /dev/null -X POST -H \"Content-Type: application/json\" -H \"Accept: application/json\" -H \"Origin: https://songtipper.test\" -d '{\"\"\"\"email\"\"\"\":\"\"\"\"test@test.com\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"wrong\"\"\"\"}' https://songtipper.test/api/v1/auth/login)",
+      "Bash(curl -sk -D - -o /dev/null https://songtipper.test/up)",
+      "Bash(curl -sk https://songtipper.test/login)",
+      "mcp__chrome-devtools__list_network_requests",
+      "Bash(curl -sk https://songtipper.test/)"
     ],
     "read": {
       "deny": [
