@@ -122,3 +122,7 @@ Then, run this: `stripe listen --forward-to https://songtipper.test/stripe/webho
 Use the following command to add admin privileges to an account:
 
 `php artisan admin:designate admin@example.com`
+
+## Connect Express Relink
+
+`php artisan payout:relink-stripe-account your@email.com acct_XXXXXXXXXXXXXXXXX`
