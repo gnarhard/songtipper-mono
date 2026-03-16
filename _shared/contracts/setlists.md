@@ -126,14 +126,20 @@ Response:
 ```json
 {
   "data": {
-    "songs": ["Song Title 1", "Song Title 2", "Song Title 3"]
+    "songs": [
+      {"title": "Song Title 1", "set_label": "Set 1"},
+      {"title": "Song Title 2", "set_label": "Set 1"},
+      {"title": "Song Title 3", "set_label": null}
+    ]
   }
 }
 ```
 
 Semantics:
 - Sends image to configured AI vision provider for OCR/title extraction.
-- Returns extracted song titles in the order they appear in the image.
+- Returns extracted songs in the order they appear in the image.
+- `set_label` is the AI-detected set grouping (e.g. "Set 1", "Encore"), or null
+  if no set groupings are visible.
 - Returns `422` if extraction fails or the image cannot be processed.
 - An empty `songs` array is valid (image was readable but contained no titles).
 - Client feeds extracted titles into the same CSV matching flow
