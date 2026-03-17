@@ -51,6 +51,7 @@ Queue is ordered by `tip_amount_cents DESC`, then `created_at ASC`.
       "status": "active",
       "requester_name": "Jane Smith",
       "note": "Happy birthday!",
+      "request_location": "Denver, Colorado, US",
       "played_at": null,
       "created_at": "2026-02-03T11:55:00+00:00"
     }
@@ -70,10 +71,12 @@ Queue is ordered by `tip_amount_cents DESC`, then `created_at ASC`.
 
 - `meta.daily_record_event` is `null` unless the current local day sets a new
   project lifetime one-day gross-tip record.
-- `requester_name` is the tipper's display name sourced from the linked
-  `AudienceProfile`. For paid requests, this is updated with the cardholder
-  name from Stripe `billing_details.name`. It is `null` for manual queue items
-  (no audience profile).
+- `requester_name` is the tipper's real name sourced from the linked
+  `AudienceProfile`. Only populated from Stripe `billing_details.name` on paid
+  requests. It is `null` for free requests and manual queue items.
+- `request_location` is the human-readable location of the tipper resolved
+  asynchronously from their IP address (e.g. `"Denver, Colorado, US"`). It is
+  `null` when the lookup has not completed, failed, or the IP was private/local.
 - The queue `ETag` must change when either the active queue payload or the
   `daily_record_event` changes.
 
@@ -149,6 +152,7 @@ Manually add an item to the active queue as an authenticated performer/project m
     "status": "active",
     "requester_name": null,
     "note": "Mash two choruses if possible",
+    "request_location": null,
     "played_at": null,
     "created_at": "2026-02-14T17:10:00+00:00"
   }
@@ -239,6 +243,7 @@ Mark a request as played.
     "status": "played",
     "requester_name": "Jane Smith",
     "note": "Happy birthday!",
+    "request_location": "Denver, Colorado, US",
     "activated_at": "2026-02-03T12:00:00+00:00",
     "played_at": "2026-02-03T12:30:00+00:00",
     "created_at": "2026-02-03T11:55:00+00:00"
