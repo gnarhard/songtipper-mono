@@ -126,3 +126,7 @@ Use the following command to add admin privileges to an account:
 ## Connect Express Relink
 
 `php artisan payout:relink-stripe-account your@email.com acct_XXXXXXXXXXXXXXXXX`
+
+## Restore Lost Requests Data
+
+`php artisan requests:restore-from-stripe user@example.com`
