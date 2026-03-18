@@ -13,11 +13,13 @@ All auth write endpoints accept an optional `Idempotency-Key` header.
 - New web signups must verify their email address before they can reach billing setup or the performer dashboard.
 - After web registration, performers must complete billing setup before accessing the web dashboard.
 - Available billing plans:
-  - `basic_monthly` at `$4.99/month`
-  - `basic_yearly` at `$49.99/year`
-  - `pro_monthly` at `$19.99/month`
-  - `pro_yearly` at `$199.99/year`
-- Paid plans collect a payment method up front and begin with a 30-day free trial.
+  - `basic` — free forever (no Stripe subscription required)
+  - `pro_monthly` at `$20/month`
+  - `pro_yearly` at `$200/year`
+- Legacy plan codes `basic_monthly` and `basic_yearly` remain valid for existing users but are not offered to new signups.
+- Basic plan users get a Stripe customer created (for future upgrade) but no subscription.
+- New Basic users receive a complimentary 30-day Pro features trial.
+- Pro plans collect a payment method up front and begin with a free trial.
 - Complimentary access can be granted in two forms:
   - `free_year` expires after the configured complimentary period
   - `lifetime` never expires
@@ -64,9 +66,9 @@ All auth write endpoints accept an optional `Idempotency-Key` header.
         "payout_account_status": "pending",
         "payout_status_reason": "requirements_due",
         "entitlements": {
-          "plan_code": "basic_monthly",
+          "plan_code": "basic",
           "plan_tier": "basic",
-          "repertoire_song_limit": 100,
+          "repertoire_song_limit": null,
           "single_chart_upload_limit_bytes": 2097152,
           "bulk_chart_upload_limit_bytes": 2097152,
           "bulk_chart_file_limit": 20,

@@ -73,11 +73,11 @@ Payout readiness fields:
 Entitlements fields:
 - `entitlements.plan_code`
 - `entitlements.plan_tier` (`basic|pro`)
-- `entitlements.repertoire_song_limit` (`100` for Basic, `null` for Pro)
+- `entitlements.repertoire_song_limit` (`null` for both Basic and Pro — unlimited)
 - `entitlements.single_chart_upload_limit_bytes` (`2097152`)
 - `entitlements.bulk_chart_upload_limit_bytes` (`2097152`)
 - `entitlements.bulk_chart_file_limit` (`20`)
-- `entitlements.ai_interactive_per_minute` (`10` Basic, `30` Pro)
+- `entitlements.ai_interactive_per_minute` (`10` Basic, `30` Pro; Basic users on Pro trial get `30`)
 - `entitlements.bulk_ai_window_limit` (`500`)
 - `entitlements.bulk_ai_window_hours` (`6`)
 - `entitlements.can_use_public_requests`

@@ -26,10 +26,9 @@
 ## Repertoire
 
 Plan limits:
-- Basic-owned projects are hard-capped at `100` repertoire songs.
-- Pro-owned projects do not have a repertoire-song cap.
+- Both Basic and Pro plans have unlimited repertoire songs (no cap).
 - Direct add and copy flows return `422` with `code=repertoire_limit_reached`
-  when the Basic cap would be exceeded.
+  if a plan-level cap is ever reintroduced.
 - Bulk import stays `200 OK` and reports skipped items via `limit_reached`
   counters and per-song `action=limit_reached`.
 
@@ -195,8 +194,8 @@ Behavior:
 - `source_project_song_ids` must all belong to `source_project_id`.
 - If `include_charts=true`, copies linked chart PDFs and rendered chart images
   for the selected songs into the destination project.
-- On a Basic-owned destination project, copy is rejected once the project has
-  reached `100` repertoire songs.
+- Copy is rejected if the destination project would exceed any configured
+  repertoire song limit (currently unlimited for all plans).
 
 ---
 
