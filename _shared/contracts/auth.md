@@ -88,7 +88,8 @@ All auth write endpoints accept an optional `Idempotency-Key` header.
     "id": 1,
     "name": "Mike Johnson",
     "email": "mike@example.com",
-    "instrument_type": "vocals"
+    "instrument_type": "vocals",
+    "secondary_instrument_type": "piano"
   }
 }
 ```
@@ -112,6 +113,7 @@ All auth write endpoints accept an optional `Idempotency-Key` header.
 **Notes:**
 - Mobile app signup remains website-based.
 - Newly created accounts must confirm email ownership before token login succeeds.
+- Web registration requires a primary instrument; secondary instrument is optional.
 
 ---
 
@@ -218,7 +220,8 @@ Return the authenticated user's profile.
     "id": 1,
     "name": "Mike Johnson",
     "email": "mike@example.com",
-    "instrument_type": "vocals"
+    "instrument_type": "vocals",
+    "secondary_instrument_type": "piano"
   }
 }
 ```
@@ -233,7 +236,8 @@ Update the authenticated user's mobile-owned profile fields.
 
 ```json
 {
-  "instrument_type": "drums"
+  "instrument_type": "drums",
+  "secondary_instrument_type": "keyboard"
 }
 ```
 
@@ -253,9 +257,12 @@ Returns the authenticated owner account's current usage state, including:
 - activity and archival timestamps
 - emitted warning markers
 
-`instrument_type` may also be `null` to clear the selection.
+Both `instrument_type` and `secondary_instrument_type` may be set to `null` to clear the selection.
+Each field is sent independently via `PATCH` — only included fields are updated.
 
-Allowed values:
+`instrument_type` is required during web registration. `secondary_instrument_type` is always optional.
+
+Allowed values for both fields:
 
 - `vocals`
 - `guitar`
@@ -282,7 +289,8 @@ Allowed values:
     "id": 1,
     "name": "Mike Johnson",
     "email": "mike@example.com",
-    "instrument_type": "drums"
+    "instrument_type": "drums",
+    "secondary_instrument_type": "keyboard"
   }
 }
 ```
