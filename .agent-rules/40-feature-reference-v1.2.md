@@ -66,6 +66,7 @@
 - Signed playback URL: `GET /repertoire/{projectSong}/audio-files/{audioFile}/signed-url`
 - Replace: `POST /repertoire/{projectSong}/audio-files/{audioFile}/replace`
 - **Batch fetch**: `POST /repertoire/audio-files/batch` — accepts `{ "project_song_ids": [1, 2, 3] }` (max 50), returns `{ "data": { "1": [...], "2": [...] } }`. Use this instead of N individual index calls when loading audio for multiple songs (e.g. setlist playlists).
+- **Cache manifest**: `GET /repertoire/audio-files/manifest` — returns all audio files for the project with signed download URLs (`cache_key`, `url`, `project_song_id`, `audio_file_id`, `file_size_bytes`). Used by the settings "Refresh" button to pre-download all audio files.
 
 ## Bulk import
 

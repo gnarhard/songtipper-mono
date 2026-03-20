@@ -63,6 +63,9 @@ Core fields:
 - `is_accepting_original_requests`
 - `notify_on_request` (default true; when true, owner receives email on new requests/tips)
 - `show_persistent_queue_strip`
+- `public_repertoire_set_id` (nullable int, FK to `setlist_sets.id`; when set, the public project page shows only songs from this set instead of the full `is_public` repertoire; `nullOnDelete` auto-resets when the set is deleted)
+- `public_repertoire_set_name` (read-only, set name when `public_repertoire_set_id` is loaded)
+- `public_repertoire_setlist_name` (read-only, parent setlist name when `public_repertoire_set_id` is loaded)
 - `chart_viewport_prefs` (deprecated, nullable object)
 
 Payout readiness fields:
@@ -197,6 +200,7 @@ If the owning project is not on Pro, these endpoints return `403` with
 - `is_accepting_original_requests`
 - `notify_on_request`
 - `show_persistent_queue_strip`
+- `public_repertoire_set_id` (nullable int; set to override public song list, null to reset)
 - `remove_performer_profile_image`
 - `chart_viewport_prefs` (deprecated write target, kept temporarily)
 

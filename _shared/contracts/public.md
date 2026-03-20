@@ -30,7 +30,8 @@ Platform URL fields:
 
 - `GET /repertoire`
 - Supports search/sort and metadata filters including `theme`.
-- Songs with `is_public=false` are excluded from the public repertoire.
+- Songs with `is_public=false` are excluded from the public repertoire (default mode).
+- When the project has `public_repertoire_set_id` set, the public repertoire shows only songs from that set, ignoring `is_public` flags and `version_label` filters.
 - Each repertoire item includes boolean `instrumental`.
 - Audience UIs append ` (instrumental)` to the displayed title when
   `instrumental=true`.
