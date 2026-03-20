@@ -1,0 +1,56 @@
+{
+  "genres": [
+    {
+      "label": "Blues",
+      "aliases": ["blues"]
+    },
+    {
+      "label": "Classical",
+      "aliases": ["classical", "orchestral", "opera", "baroque"]
+    },
+    {
+      "label": "Country",
+      "aliases": ["country", "americana", "bluegrass"]
+    },
+    {
+      "label": "Electronic",
+      "aliases": ["electronic", "edm", "house", "techno", "trance", "dubstep", "dnb", "drum and bass"]
+    },
+    {
+      "label": "Folk",
+      "aliases": ["folk", "singer songwriter", "singer-songwriter", "acoustic"]
+    },
+    {
+      "label": "Hip Hop",
+      "aliases": ["hip hop", "hip-hop", "rap", "trap", "drill"]
+    },
+    {
+      "label": "Jazz",
+      "aliases": ["jazz", "swing", "bebop", "bossa"]
+    },
+    {
+      "label": "Latin",
+      "aliases": ["latin", "reggaeton", "salsa", "bachata", "cumbia", "merengue"]
+    },
+    {
+      "label": "Pop",
+      "aliases": ["pop", "synthpop", "electropop"]
+    },
+    {
+      "label": "R&B",
+      "aliases": ["rnb", "r and b", "rhythm and blues", "neo soul", "funk"]
+    },
+    {
+      "label": "Reggae",
+      "aliases": ["reggae", "ska", "dancehall"]
+    },
+    {
+      "label": "Rock",
+      "aliases": ["rock", "punk", "metal", "grunge", "emo", "hardcore", "alternative"]
+    },
+    {
+      "label": "Soul",
+      "aliases": ["soul"]
+    }
+  ]
+}
