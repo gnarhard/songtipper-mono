@@ -100,7 +100,9 @@
       "mcp__playwright__browser_resize",
       "Bash(rm /Users/gerhard/Code/Sites/Valet/songtipper/web/.claude/launch.json)",
       "Bash(rmdir /Users/gerhard/Code/Sites/Valet/songtipper/web/.claude)",
-      "mcp__playwright__browser_run_code"
+      "mcp__playwright__browser_run_code",
+      "Bash(find /Users/gerhard/Code/Sites/Valet/songtipper/web -path */node_modules -prune -o -type f \\\\\\(-name *queue* -o -name *request* \\\\\\) -print)",
+      "Bash(find /Users/gerhard/Code/Sites/Valet/songtipper/web/resources -type f \\\\\\(-name *queue* -o -name *request* \\\\\\))"
     ],
     "read": {
       "deny": [
