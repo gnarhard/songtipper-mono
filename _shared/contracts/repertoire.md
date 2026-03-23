@@ -158,25 +158,142 @@ Demote to learn:
 
 ---
 
-## Bulk Import
+## Bulk Import (Multi-Phase Flow)
 
-- `POST /repertoire/bulk-import`
+The bulk import is a three-phase process:
+1. **Upload** — Upload PDFs, trigger AI identification
+2. **Enrich** — Fetch enriched metadata for all identified songs
+3. **Confirm** — User reviews metadata, then finalizes import
+
+### Phase 1: Upload — `POST /repertoire/bulk-upload`
+
 - Limits:
   - max files per request: `20`
   - max size per PDF: `2MB`
-- Large chart batches may queue AI enrichment separately from the tighter
-  interactive metadata throttle. When the bulk fair-use burst bucket is full,
-  uploads still succeed but affected entries are reported as `deferred`.
-- Supports either:
-  - chart-backed imports via `files[]`
-  - metadata-only imports via `items[]` rows parsed from CSV
-- When importing without charts, each `items[]` row must include:
-  - `title`
-  - `artist`
-- Optional item metadata:
-  - `theme`
+- Uploads PDF chart files and triggers AI identification.
+- Does **not** create Song or ProjectSong records.
+- Large chart batches may queue AI enrichment via the batch API. When the
+  bulk fair-use burst bucket is full, uploads still succeed but affected
+  entries are reported as `deferred`.
 - Filename metadata supports: `key`, `capo`, `tuning`, `energy`, `era`, `genre`, `theme`.
 - Theme filename token example: `-- theme=love`.
+
+Request (multipart):
+- `files[]` — PDF files
+- `existing_songs_only` — boolean
+
+Response (`200`):
+
+```json
+{
+  "data": {
+    "charts": [
+      {
+        "chart_id": 123,
+        "filename": "Song - Artist.pdf",
+        "import_status": "queued",
+        "import_metadata": { "title": "Song", "artist": "Artist" }
+      }
+    ],
+    "message": "Uploaded 5 chart(s). 3 queued for identification."
+  }
+}
+```
+
+Chart render-status (`GET /me/charts/{chartId}/render-status`) now includes
+`import_metadata` in the response. When `import_status` is `identified`,
+`import_metadata` contains the AI-identified title, artist, and enrichment
+data (energy_level, era, genre, theme, original_musical_key, duration_in_seconds).
+
+### Phase 2: Enrich — `POST /repertoire/bulk-enrich`
+
+- Fetches enriched metadata for a batch of songs by title+artist.
+- Uses `SongMetadataLookupService`: checks songs table, cache, then AI.
+- Respects interactive AI quota limits.
+
+Request:
+
+```json
+{
+  "songs": [
+    { "title": "Bohemian Rhapsody", "artist": "Queen" }
+  ]
+}
+```
+
+Response (`200`):
+
+```json
+{
+  "data": {
+    "songs": [
+      {
+        "title": "Bohemian Rhapsody",
+        "artist": "Queen",
+        "source": "songs_table",
+        "metadata": {
+          "energy_level": "high",
+          "era": "1970s",
+          "genre": "Rock",
+          "theme": "story",
+          "original_musical_key": "Bb",
+          "duration_in_seconds": 354
+        }
+      }
+    ],
+    "ai_calls_used": 3
+  }
+}
+```
+
+### Phase 3: Confirm — `POST /repertoire/bulk-import/confirm`
+
+- Finalizes the import with user-confirmed metadata.
+- Creates Song records (findOrCreate), ProjectSong records, and links charts.
+- Applies user-confirmed metadata to Song records (fills null fields only).
+- Throttle: `throttle:chart-uploads`.
+
+Request:
+
+```json
+{
+  "songs": [
+    {
+      "title": "Bohemian Rhapsody",
+      "artist": "Queen",
+      "chart_id": 123,
+      "mashup": false,
+      "theme": "story",
+      "energy_level": "high",
+      "era": "1970s",
+      "genre": "Rock",
+      "original_musical_key": "Bb",
+      "duration_in_seconds": 354
+    }
+  ],
+  "existing_songs_only": false
+}
+```
+
+Response (`200`):
+
+```json
+{
+  "data": {
+    "message": "Imported 10 song(s), skipped 2 duplicate(s).",
+    "imported": 10,
+    "duplicates": 2,
+    "limit_reached": 0,
+    "no_match": 0,
+    "songs": [
+      { "title": "...", "artist": "...", "action": "imported", "song_id": 123, "chart_id": 456 },
+      { "title": "...", "artist": "...", "action": "duplicate", "duplicate_of": "Song - Artist" },
+      { "title": "...", "artist": "...", "action": "limit_reached" },
+      { "title": "...", "artist": "...", "action": "no_match" }
+    ]
+  }
+}
+```
 
 ---
 
