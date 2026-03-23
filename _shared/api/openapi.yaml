@@ -2662,6 +2662,12 @@ components:
       type: object
       properties:
         id: { type: integer }
+        title:
+          type: string
+          description: Project-specific display title
+        artist:
+          type: string
+          description: Project-specific display artist
         project_id: { type: integer }
         song_id: { type: integer }
         version_label:

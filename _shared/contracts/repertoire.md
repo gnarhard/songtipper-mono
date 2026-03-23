@@ -21,6 +21,16 @@
 - Backfill migration (`*_backfill_song_themes_to_canonical_song_theme_enum.php`) applies
   deterministic map values, and any unmapped/invalid legacy theme is forced to `story`.
 
+## Title & artist metadata
+
+- `songs.title` / `songs.artist`: canonical global values used for deduplication.
+- `project_songs.title` / `project_songs.artist`: project-specific display values (NOT NULL).
+- On create, title/artist are always saved to `project_songs`.
+- On update, title/artist changes are saved to `project_songs` only; the `songs`
+  table and `song_id` link are not modified.
+- API responses include flat `title`/`artist` keys (project-specific) and a nested
+  `song` object with canonical `title`/`artist`.
+
 ---
 
 ## Repertoire
@@ -105,8 +115,10 @@ Limit error:
 
 ### Update
 - `PUT /repertoire/{projectSongId}`
-- Supports theme, `instrumental`, `mashup`, `is_public`, and project-song `notes`
-  updates at project override level.
+- Supports `title`, `artist`, theme, `instrumental`, `mashup`, `is_public`, and
+  project-song `notes` updates at project override level.
+- Title/artist changes are saved to `project_songs` only (the `songs` table
+  and `song_id` are not modified).
 
 Project-song notes:
 - Field: `notes`
