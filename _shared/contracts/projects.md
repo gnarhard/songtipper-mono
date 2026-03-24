@@ -18,6 +18,7 @@
 - `POST /{projectId}/performer-image` - upload performer profile image
 - `GET /{projectId}/members` - list owner and invited members
 - `POST /{projectId}/members` - owner-only invite of an existing SongTipper user
+- `DELETE /{projectId}/members/{membershipId}` - owner-only removal of a project member
 
 ---
 
@@ -35,6 +36,10 @@
   - `members[]` with `id`, `user_id`, `role`, `joined_at`, and nested `user`
     details
 - Inviting the project owner's own email returns `422`.
+- Owners can remove a member via `DELETE /{projectId}/members/{membershipId}`.
+- Removing a member deletes the `project_members` row.
+- Returns `{ "message": "Project member removed successfully." }` on success.
+- Non-owners receive `403`. Membership IDs from other projects return `404`.
 
 ---
 
