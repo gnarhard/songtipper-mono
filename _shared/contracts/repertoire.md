@@ -46,13 +46,36 @@ Plan limits:
 - On downgrade, existing songs above the new limit remain accessible (read-only
   grace) but no new songs can be added until the user is within limits.
 
+Member repertoire isolation:
+- Each project member has their own independent copy of songs within the project.
+- `project_songs.user_id`: NOT NULL FK to `users`, scopes songs per member.
+- `project_songs.source_project_song_id`: nullable FK to `project_songs` (self-ref),
+  links a member's copy back to the owner's canonical version.
+- Unique constraint: `(project_id, user_id, song_id, version_label)`.
+- On member join: all owner songs (with charts) are copied to the member via
+  `SyncRepertoireToMember` job.
+- On owner song creation: `FanOutSongToMembers` job copies the new song to all
+  current members. Does not overwrite if the member already has the song.
+- Owner edits do NOT auto-propagate to members.
+- API responses include `source_project_song_id` (nullable int) and `is_owner_copy`
+  (boolean; true when `source_project_song_id` is null).
+
+Pull Owner Copy:
+- `POST /repertoire/{projectSongId}/pull-owner-copy`
+- Fetches the owner's current version via `source_project_song_id` and adds it
+  as a new alternate version on the member's song.
+- Label: `"Owner's Version (synced Mar 23, 2026)"`.
+- Member's existing versions are untouched.
+- Returns `422` if the song has no linked owner version.
+- Returns `404` if the owner's version no longer exists.
+
 Song versions:
 - Field: `version_label`
 - Scope: stored on `project_songs`
 - Type: nullable string (max 50 chars) in API; empty string `''` in DB for primary
 - API representation: `null` for the primary/default version, non-empty string
   for alternate versions (e.g., `"Acoustic"`, `"Solo"`, `"Electric"`)
-- Unique constraint: `(project_id, song_id, version_label)`
+- Unique constraint: `(project_id, user_id, song_id, version_label)`
 - Each version has independent metadata (key, capo, tuning, notes, etc.) and charts
 - Alternate versions count against the repertoire limit
 - Public repertoire only shows primary versions

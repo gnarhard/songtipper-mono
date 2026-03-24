@@ -8,6 +8,28 @@
 
 ---
 
+## Member setlist isolation
+
+- Each project member has their own independent setlists within the project.
+- `setlists.user_id`: NOT NULL FK to `users`, scopes setlists per member.
+- On member join: all owner's active setlists are copied to the member via
+  `SyncRepertoireToMember` job. Setlist notes (all levels) are NOT copied —
+  they are always personal to each member.
+- New setlists created by the owner after a member joins are NOT automatically
+  added to member accounts.
+- Owner can explicitly share a setlist with all members via
+  `POST /setlists/{setlistId}/share-with-members` (dispatches `CopySetlistToMember`
+  job per member).
+- Set list song references are resolved to the member's copies of the repertoire.
+
+Share setlist with members:
+- `POST /setlists/{setlistId}/share-with-members`
+- Owner-only. Returns `403` for non-owners.
+- Dispatches async copy job for each project member.
+- Response: `{ "message": "...", "member_count": 2 }`
+
+---
+
 ## Setlists are container-only
 
 Setlists now only represent containers for sets.
