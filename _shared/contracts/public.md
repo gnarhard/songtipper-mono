@@ -110,3 +110,19 @@ Payout setup gate:
 
 - If project tips are disabled independently, positive-tip and tip-only
   submissions return `422` with message only (no `code` field).
+
+Free request reward:
+- When `free_request_threshold_cents > 0`, each paid tip increments the
+  audience member's `cumulative_tip_cents` on their `audience_profile`.
+- When `cumulative_tip_cents >= free_request_threshold_cents`, the audience
+  member has earned a free request.
+- The request page shows progress: "You're $X away from receiving a free
+  request!" after the first tip, or "You've earned a free request!" when
+  the threshold is met.
+- Free requests are submitted with `payment_provider=none` and
+  `tip_amount_cents=0`, bypassing tip and minimum-tip requirements.
+- On use, `cumulative_tip_cents` resets to `0`. The audience must tip another
+  full threshold amount to earn a new free request.
+- Tip-only submissions cannot use a free request credit.
+- When `free_request_threshold_cents=0`, the reward feature is disabled and
+  no progress messages are shown.

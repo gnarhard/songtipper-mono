@@ -62,6 +62,7 @@ Core fields:
 - `performer_info_url` (nullable)
 - `performer_profile_image_url` (nullable)
 - `min_tip_cents` (rounded up to a whole-dollar cent value on write)
+- `free_request_threshold_cents` (cumulative tip threshold for earning a free request; 0 = disabled; default 4000; rounded up to whole dollar on write)
 - `quick_tip_amounts_cents` (exactly 3 whole-dollar cent values in descending display order)
 - `is_accepting_requests`
 - `is_accepting_tips`
@@ -199,6 +200,7 @@ If the owning project is not on Pro, these endpoints return `403` with
 - `name`
 - `performer_info_url`
 - `min_tip_cents` (backend rounds cent inputs up to the next whole dollar)
+- `free_request_threshold_cents` (0 to disable; backend rounds up to whole dollar)
 - `quick_tip_amounts_cents` (exactly 3 whole-dollar cent values in descending display order)
 - `is_accepting_requests`
 - `is_accepting_tips`
