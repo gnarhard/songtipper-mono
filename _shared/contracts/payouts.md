@@ -15,11 +15,12 @@
 - `POST /api/v1/me/payout-account/dashboard-link`
 - `GET /api/v1/me/projects/{projectId}/wallet`
 - `GET /api/v1/me/projects/{projectId}/stats`
+- `GET /api/v1/me/projects/{projectId}/stats/history`
 - `GET /api/v1/me/projects/{projectId}/wallet/sessions`
 - `GET /api/v1/me/payouts`
 
 Pro plan gates:
-- `wallet`, `stats`, `wallet/sessions`, and `payouts` require Pro.
+- `wallet`, `stats`, `stats/history`, `wallet/sessions`, and `payouts` require Pro.
 - Project-scoped wallet/stat endpoints also require project ownership.
 - When Pro is required and unavailable, API returns `403` with
   `code=feature_requires_pro`.
@@ -151,6 +152,24 @@ Semantics:
 - Stripe-backed requests use persisted Stripe fee/net settlement values.
 - If same-day Stripe settlement data is still missing, backend may hydrate it
   from Stripe on demand; if it cannot be resolved, endpoint returns `502`.
+
+---
+
+## Stats history endpoint
+
+`GET /api/v1/me/projects/{projectId}/stats/history`:
+- Pro-only, owner-only endpoint.
+- Returns lifetime monthly earnings buckets for charting.
+- Query params:
+  - `timezone` (required, IANA timezone, e.g. `America/Denver`)
+- Response:
+  - `buckets` — chronologically ordered array of monthly objects:
+    - `year_month` — `YYYY-MM` string
+    - `label` — human-readable label, e.g. `"Jan '24"`
+    - `net_cents` — Stripe net tip amount after fees
+    - `fee_cents` — Stripe platform fee amount
+    - `cash_cents` — cash tips + manual queue tips (no fees)
+- Empty `buckets` array returned when no activity exists.
 
 ---
 
