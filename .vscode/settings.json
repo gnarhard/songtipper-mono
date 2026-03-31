@@ -11,4 +11,15 @@
   "scm.repositories.selectionMode": "multiple",
   "scm.repositories.visible": 3,
   "git.ignoredRepositories": ["./songtipper-worktrees/*"],
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/build": true,
+    "**/dist": true,
+    "**/.vscode": true,
+    "**/.idea": true,
+    "**/Pods": true,
+    "**/vendor": true
+  },
 }
