@@ -111,18 +111,28 @@ Payout setup gate:
 - If project tips are disabled independently, positive-tip and tip-only
   submissions return `422` with message only (no `code` field).
 
-Free request reward:
-- When `free_request_threshold_cents > 0`, each paid tip increments the
-  audience member's `cumulative_tip_cents` on their `audience_profile`.
-- When `cumulative_tip_cents >= free_request_threshold_cents`, the audience
-  member has earned a free request.
-- The request page shows progress: "You're $X away from receiving a free
-  request!" after the first tip, or "You've earned a free request!" when
-  the threshold is met.
-- Free requests are submitted with `payment_provider=none` and
+Audience reward thresholds:
+- Projects can define multiple reward thresholds via `reward_thresholds`
+  (see projects.md). Each threshold has a `threshold_cents`, `reward_type`,
+  `reward_label`, and `is_repeating` flag.
+- Each paid tip increments the audience member's `cumulative_tip_cents` on
+  their `audience_profile`. This value only grows; it never resets.
+- Claims are tracked in `audience_reward_claims` (one row per claim).
+- **Repeating thresholds**: the audience earns the reward at every multiple
+  of `threshold_cents`. Available claims = `floor(cumulative / threshold) -
+  claims_made`.
+- **Non-repeating thresholds**: earned once when cumulative >= threshold.
+- **`free_request` type**: auto-claimable. The request page shows progress
+  ("You're $X away from: Free Song Request!") and a claim button when earned.
+  Free requests are submitted with `payment_provider=awarded` and
   `tip_amount_cents=0`, bypassing tip and minimum-tip requirements.
-- On use, `cumulative_tip_cents` resets to `0`. The audience must tip another
-  full threshold amount to earn a new free request.
-- Tip-only submissions cannot use a free request credit.
-- When `free_request_threshold_cents=0`, the reward feature is disabled and
-  no progress messages are shown.
+  Tip-only submissions cannot use a free request credit.
+- **Other reward types** (e.g. `free_cd`, `custom`): informational only.
+  The project page shows "You've earned: {reward_label}! Approach the
+  musician to receive your reward." The performer fulfills manually.
+- When a tip crosses a threshold, the performer receives an email
+  notification identifying the reward and the audience member.
+- When a project has no reward thresholds, no reward features are shown.
+- Backward compat: `free_request_threshold_cents` on the project payload
+  is deprecated but still present. A single repeating `free_request`
+  threshold is equivalent to the old behavior.
