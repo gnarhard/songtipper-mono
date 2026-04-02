@@ -38,16 +38,16 @@ Exhaustive feature verification for Web & Mobile App
 
 - [ ] Billing setup page shown before dashboard access
 - [ ] Select Free plan (no card required)
-- [ ] Select Basic plan (monthly/yearly) with card
 - [ ] Select Pro plan (monthly/yearly) with card
+- [ ] Select Veteran plan (monthly/yearly) with card
 - [ ] 14-day trial starts correctly
-- [ ] Upgrade plan (Free -> Basic -> Pro)
+- [ ] Upgrade plan (Free -> Pro -> Veteran)
 - [ ] Downgrade plan
 - [ ] **[NEW]** Downgrade from Pro disables tipping/requests on all owned projects immediately
 - [ ] **[NEW]** Downgrade: existing songs above new tier limit remain readable but no new songs addable
 - [ ] Update payment method
 - [ ] Access Stripe billing portal
-- [ ] **[NEW]** Feature gating matches tier (Free: 1 project/20 songs, Basic: 3/200, Pro: unlimited)
+- [ ] **[NEW]** Feature gating matches tier (Free: 1 project/20 songs, Pro: 3/200, Veteran: unlimited)
 
 ### Dashboard
 
@@ -82,12 +82,12 @@ Exhaustive feature verification for Web & Mobile App
 - [ ] Remove performer image
 - [ ] Delete project
 - [ ] Unique slug validation
-- [ ] **[NEW]** Project limit enforced per tier (Free: 1, Basic: 3, Pro: unlimited)
+- [ ] **[NEW]** Project limit enforced per tier (Free: 1, Pro: 3, Veteran: unlimited)
 - [ ] **[NEW]** Exceeding project limit returns `project_limit_reached` error
 - [ ] **[NEW]** Set public_repertoire_set_id (filter public page to a specific set)
 - [ ] **[NEW]** Clear public_repertoire_set_id (revert to full public repertoire)
 - [ ] **[NEW]** Enabling requests/tips without payout setup returns `payout_setup_incomplete`
-- [ ] **[NEW]** Basic plan user enabling public requests returns `feature_requires_pro`
+- [ ] **[NEW]** Pro plan user enabling public requests returns `feature_requires_pro`
 - [ ] Toggle: show persistent queue strip
 
 ### Project Members
@@ -119,7 +119,7 @@ Exhaustive feature verification for Web & Mobile App
 - [ ] **[NEW]** API response includes flat title/artist (project-specific) and nested song object (canonical)
 - [ ] Delete song from project
 - [ ] Record song performance
-- [ ] **[NEW]** Song count limit enforced per tier (Free: 20, Basic: 200, Pro: unlimited)
+- [ ] **[NEW]** Song count limit enforced per tier (Free: 20, Pro: 200, Veteran: unlimited)
 - [ ] **[NEW]** Exceeding song limit returns `repertoire_limit_reached` error
 - [ ] Search/filter repertoire by title/artist
 - [ ] Filter by energy level, era, genre, theme
@@ -607,12 +607,12 @@ Exhaustive feature verification for Web & Mobile App
 - [ ] Chart upload: 5 requests/min per user
 - [ ] Cache manifest: 2 requests/5 min
 - [ ] Public requests: 60/min
-- [ ] AI interactive: Free/Basic 10/min, Pro 30/min
+- [ ] AI interactive: Free/Pro 10/min, Veteran 30/min
 - [ ] Login: 5 attempts/min
 
 ### Plan Enforcement Matrix
 
-| Capability | Free | Basic | Pro |
+| Capability | Free | Pro | Veteran |
 |---|---|---|---|
 | [ ] Project limit | 1 | 3 | unlimited |
 | [ ] Repertoire song limit | 20 | 200 | unlimited |
@@ -627,7 +627,7 @@ Exhaustive feature verification for Web & Mobile App
 
 - [ ] `repertoire_limit_reached` when adding song past plan limit
 - [ ] `project_limit_reached` when creating project past plan limit
-- [ ] `feature_requires_pro` when Basic user enables public features
+- [ ] `feature_requires_pro` when Pro user enables public features
 - [ ] `payout_setup_incomplete` when enabling tips/requests without payout
 - [ ] 409 on duplicate chart adoption
 - [ ] 409 on duplicate audio file upload (SHA-256 match)

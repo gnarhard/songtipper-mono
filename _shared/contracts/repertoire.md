@@ -37,7 +37,7 @@
 
 Plan limits:
 - Free-owned projects are hard-capped at `20` repertoire songs.
-- Basic-owned projects are hard-capped at `200` repertoire songs.
+- Pro-owned projects are hard-capped at `200` repertoire songs.
 - Pro-owned projects do not have a repertoire-song cap.
 - Direct add and copy flows return `422` with `code=repertoire_limit_reached`
   when the plan cap would be exceeded.
@@ -350,7 +350,7 @@ Behavior:
 - `source_project_song_ids` must all belong to `source_project_id`.
 - If `include_charts=true`, copies linked chart PDFs and rendered chart images
   for the selected songs into the destination project.
-- On a capped destination project (Free: 20, Basic: 200), copy is rejected once
+- On a capped destination project (Free: 20, Pro: 200), copy is rejected once
   the project has reached its repertoire song limit.
 
 ---

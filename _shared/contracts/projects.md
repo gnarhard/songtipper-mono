@@ -81,21 +81,21 @@ Payout readiness fields:
 
 Entitlements fields:
 - `entitlements.plan_code`
-- `entitlements.plan_tier` (`free|basic|pro`)
-- `entitlements.repertoire_song_limit` (`20` for Free, `200` for Basic, `null` for Pro)
-- `entitlements.project_limit` (`1` for Free, `3` for Basic, `null` for Pro)
+- `entitlements.plan_tier` (`free|pro|veteran`)
+- `entitlements.repertoire_song_limit` (`20` for Free, `200` for Pro, `null` for Veteran)
+- `entitlements.project_limit` (`1` for Free, `3` for Pro, `null` for Veteran)
 - `entitlements.single_chart_upload_limit_bytes` (`2097152`)
 - `entitlements.bulk_chart_upload_limit_bytes` (`2097152`)
 - `entitlements.bulk_chart_file_limit` (`20`)
-- `entitlements.ai_interactive_per_minute` (`10` Free/Basic, `30` Pro)
+- `entitlements.ai_interactive_per_minute` (`10` Free/Pro, `30` Veteran)
 - `entitlements.bulk_ai_window_limit` (`500`)
 - `entitlements.bulk_ai_window_hours` (`6`)
-- `entitlements.can_use_public_requests` (Pro-only)
-- `entitlements.can_access_queue` (Pro-only)
-- `entitlements.can_access_history` (Pro-only)
-- `entitlements.can_view_owner_stats` (Pro-only)
-- `entitlements.can_view_wallet` (Pro-only)
-- `entitlements.can_invite_members` (Pro-only — band sync)
+- `entitlements.can_use_public_requests` (Veteran-only)
+- `entitlements.can_access_queue` (Veteran-only)
+- `entitlements.can_access_history` (Veteran-only)
+- `entitlements.can_view_owner_stats` (Veteran-only)
+- `entitlements.can_view_wallet` (Veteran-only)
+- `entitlements.can_invite_members` (Veteran-only — band sync)
 
 Project creation limit:
 - When a user's owned project count reaches `entitlements.project_limit`, `POST /`
@@ -122,7 +122,7 @@ Downgrade behavior:
 ## Payout gate behavior for requests and tips
 
 When updating a project:
-- If the owner plan is Basic and the update would newly enable public requests
+- If the owner plan is Pro and the update would newly enable public requests
   or tips, API returns `422`:
 
 ```json

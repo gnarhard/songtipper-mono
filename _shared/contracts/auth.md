@@ -16,7 +16,7 @@ All auth write endpoints accept an optional `Idempotency-Key` header.
   - `free` — all features, no card required, until $400 cumulative tips earned
   - `pro_monthly` at `$20/month` — auto-activates at $400 cumulative threshold
   - `pro_yearly` at `$200/year` — offered alongside monthly at activation
-  - `top_earner` at `$50/month` — auto-upgrades when earning $2,500+/mo
+  - `veteran_monthly` at `$50/month` — auto-upgrades when earning $2,500+/mo (`plan_tier: veteran`)
 - After $400 threshold: 14-day grace period to add payment. If no card after 14 days, audience requesting feature is gated until subscription activated.
 - Auto-skip: if monthly tips < $200, billing is automatically skipped (monthly plans only).
 - Complimentary access can be granted in two forms:

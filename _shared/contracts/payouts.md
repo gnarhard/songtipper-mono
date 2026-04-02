@@ -105,7 +105,7 @@ Example success:
 ## Wallet summary endpoint
 
 `GET /api/v1/me/projects/{projectId}/wallet`:
-- Pro-only owner endpoint (`403` for non-owners and Basic-owned projects).
+- Veteran-only owner endpoint (`403` for non-owners and Pro-owned projects).
 - Returns:
   - account-level Stripe balance (`available`, `pending`, USD totals),
   - project-level earnings aggregates from SongTipper request/session data,

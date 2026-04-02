@@ -789,8 +789,8 @@ paths:
       tags: [Repertoire]
       summary: Add repertoire song
       description: |
-        Basic-owned projects are hard-capped at 100 repertoire songs.
-        Pro-owned projects do not have a repertoire-song cap.
+        Pro-owned projects are hard-capped at 100 repertoire songs.
+        Veteran-owned projects do not have a repertoire-song cap.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ProjectId'
@@ -914,7 +914,7 @@ paths:
       description: |
         Up to 20 chart PDFs or 20 metadata-only song rows per request.
         Each PDF max 2MB.
-        Basic-owned projects stop importing once the project reaches 100 repertoire songs.
+        Pro-owned projects stop importing once the project reaches 100 repertoire songs.
         Large chart batches may defer AI enrichment for review while still accepting the upload.
         When `files` is omitted, each `items[]` row must include `title` and `artist`.
       security: [{ bearerAuth: [] }]
@@ -959,7 +959,7 @@ paths:
       tags: [Repertoire]
       summary: Copy selected repertoire songs from another project
       description: |
-        Basic-owned projects are hard-capped at 100 repertoire songs.
+        Pro-owned projects are hard-capped at 100 repertoire songs.
         If the copy would exceed the cap, the API returns `422` with `code=repertoire_limit_reached`.
       security: [{ bearerAuth: [] }]
       parameters:
@@ -997,7 +997,7 @@ paths:
         Accepts an image file (photo of a setlist, printed song list, handwritten
         notes, or screenshot) and uses AI to extract song titles and artists.
         Extracted songs are added to the project repertoire, skipping duplicates.
-        Basic-owned projects stop importing once the 100-song cap is reached.
+        Pro-owned projects stop importing once the 100-song cap is reached.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ProjectId'
@@ -2075,10 +2075,10 @@ components:
     ProjectEntitlements:
       type: object
       properties:
-        plan_code: { type: string, example: basic_monthly }
+        plan_code: { type: string, example: pro_monthly }
         plan_tier:
           type: string
-          enum: [basic, pro]
+          enum: [free, pro, veteran]
         repertoire_song_limit:
           type: integer
           nullable: true
@@ -2220,10 +2220,10 @@ components:
     AccountUsagePlan:
       type: object
       properties:
-        code: { type: string, example: basic_monthly }
+        code: { type: string, example: pro_monthly }
         tier:
           type: string
-          enum: [basic, pro]
+          enum: [free, pro, veteran]
     AccountUsageStorage:
       type: object
       properties:
