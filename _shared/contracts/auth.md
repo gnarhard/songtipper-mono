@@ -18,7 +18,6 @@ All auth write endpoints accept an optional `Idempotency-Key` header.
   - `pro_yearly` at `$200/year` — offered alongside monthly at activation
   - `veteran_monthly` at `$50/month` — auto-upgrades when earning $2,500+/mo (`plan_tier: veteran`)
 - After $200 threshold: 14-day grace period to add payment. If no card after 14 days, audience requesting feature is gated until subscription activated.
-- Auto-skip: if monthly tips < $200, billing is automatically skipped (monthly plans only).
 - Yearly plan nudge: after an additional $400 in tips beyond the billing threshold ($600 cumulative), send an email suggesting the yearly plan to save money.
 - Complimentary access can be granted in two forms:
   - `free_year` expires after the configured complimentary period

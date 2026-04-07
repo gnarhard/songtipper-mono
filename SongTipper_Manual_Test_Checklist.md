@@ -40,7 +40,6 @@ Exhaustive feature verification for Web & Mobile App
 - [ ] Pro pricing: `$20/month` or `$200/year`
 - [ ] 14-day grace period begins at threshold to add payment method
 - [ ] After 14-day grace without card: `billing_status=card_needed`, audience requesting blocked until subscription active
-- [ ] Auto-skip: monthly billing skipped automatically if monthly tips < $200 (monthly plans only)
 - [ ] Yearly plan nudge email sent after $600 cumulative tips ($400 past threshold)
 - [ ] Veteran plan (`veteran_monthly`, `$50/month`) auto-upgrade when earning $2,500+/month (Top Earner badge)
 - [ ] Complimentary access: `free_year` expires after configured period
