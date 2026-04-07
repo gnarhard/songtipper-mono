@@ -132,6 +132,14 @@ Then, run this: `stripe listen --forward-to https://songtipper.test/stripe/webho
 
 `php artisan requests:restore-from-stripe user@example.com`
 
+### Revoke and warn about lingering offers
+`php artisan billing:revoke-discount user@example.com`
+
+### Revoke and clean up the BillingOffer row in one shot
+
+A BillingOffer is an invitation to the platform.
+`php artisan billing:revoke-discount user@example.com --delete-offer`
+
 ## Song Data Integrity
 
 Two complementary tools keep the songs table clean: rule-based checks (instant) and AI-powered review (async batch).
