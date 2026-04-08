@@ -62,7 +62,8 @@ Core fields:
 - `performer_info_url` (nullable)
 - `performer_profile_image_url` (nullable)
 - `min_tip_cents` (rounded up to a whole-dollar cent value on write)
-- `free_request_threshold_cents` (cumulative tip threshold for earning a free request; 0 = disabled; default 4000; rounded up to whole dollar on write)
+- `free_request_threshold_cents` (cumulative tip threshold for earning a free request; 0 = disabled; default 4000; rounded up to whole dollar on write; deprecated — use `reward_thresholds` instead)
+- `reward_thresholds[]` (array of reward threshold objects owned by this project; see below)
 - `quick_tip_amounts_cents` (exactly 3 whole-dollar cent values in descending display order)
 - `is_accepting_requests`
 - `is_accepting_tips`
@@ -179,7 +180,10 @@ Timeline semantics:
 - `all_time` spans from project `created_at` through report generation time.
 
 Stats response fields:
-- `period`, `money`, `counts`, `highlights`, and `rankings` remain unchanged.
+- `period`, `money`, `counts`, `highlights`, `rankings`, and `rewards_gifted`
+  are always present.
+- `rankings.most_played`, `rankings.most_requested`, and `rankings.highest_earning`
+  each contain up to 10 entries for the selected period.
 - `records.best_day` is nullable and, when present, includes:
   - `gross_tip_amount_cents`
   - `local_date`
@@ -189,6 +193,13 @@ Stats response fields:
   one-day gross tip total in the supplied reporting timezone.
 - `is_current_period_record=true` when the selected timeline range contains the
   record date.
+- `rewards_gifted` reports audience reward claims scoped to the selected
+  period's UTC window (based on claim `claimed_at`):
+  - `rewards_gifted.total` is the sum of all claim counts in the window.
+  - `rewards_gifted.rewards[]` lists every reward threshold currently owned
+    by the project (ordered by `sort_order` then `id`), even when its
+    `count` for the period is 0. Each entry includes `reward_threshold_id`,
+    `reward_label`, `reward_icon` (nullable curated icon code), and `count`.
 
 If the owning project is not on Pro, these endpoints return `403` with
 `code=feature_requires_pro`.
@@ -222,3 +233,42 @@ Canonical viewport persistence is per `(user, chart, page)` via:
 - `PUT /api/v1/me/charts/{chartId}/pages/{page}/viewport`
 
 Clients should migrate to these endpoints and stop writing project-level viewport blobs.
+
+---
+
+## Reward thresholds
+
+- `GET /{projectId}/reward-thresholds` — list thresholds for an owned project
+- `POST /{projectId}/reward-thresholds` — create a threshold
+- `PUT /{projectId}/reward-thresholds/{rewardThresholdId}` — update a threshold
+- `DELETE /{projectId}/reward-thresholds/{rewardThresholdId}` — delete a threshold
+- `PUT /{projectId}/reward-thresholds/reorder` — reorder by `ids[]`
+
+### Default threshold on project creation
+
+- Every newly created project automatically receives a single repeating
+  `free_request` threshold at $40 (`threshold_cents=4000`,
+  `reward_label="Free Song Request"`, `reward_icon="music_note"`,
+  `is_repeating=true`, `sort_order=0`).
+- This behaviour is server-side; clients do not need to create it.
+- Owners may edit or delete the default threshold at any time.
+
+### Reward threshold payload fields
+
+- `id`
+- `threshold_cents` (rounded up to a whole-dollar cent value on write; minimum 100)
+- `reward_type` (short string, max 50; `free_request` is the auto-claimable type)
+- `reward_label` (display label, max 255)
+- `reward_icon` (nullable curated icon code — see below)
+- `reward_icon_emoji` (read-only emoji mapped from `reward_icon`; `null` when `reward_icon` is `null`)
+- `reward_description` (nullable string, max 500 chars; optional longer explanation shown under the label)
+- `is_repeating` (boolean; repeating thresholds grant one claim at every multiple)
+- `sort_order` (integer; ascending display order)
+
+### Curated `reward_icon` codes
+
+`reward_icon` must be one of: `music_note`, `card_giftcard`, `star`,
+`favorite`, `local_bar`, `local_cafe`, `mic`, `celebration`, `emoji_events`,
+`album`, `checkroom`, `headphones`. Any other value returns `422`. Mobile
+clients render the same codes via Material icons; the audience web views
+render the emoji mapped to each code.

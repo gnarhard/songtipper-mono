@@ -114,7 +114,17 @@ Payout setup gate:
 Audience reward thresholds:
 - Projects can define multiple reward thresholds via `reward_thresholds`
   (see projects.md). Each threshold has a `threshold_cents`, `reward_type`,
-  `reward_label`, and `is_repeating` flag.
+  `reward_label`, `reward_icon` (nullable curated code), `reward_icon_emoji`
+  (read-only emoji mapped from `reward_icon`), `reward_description`
+  (nullable, max 500 chars), and `is_repeating` flag.
+- `reward_icon` must be one of the curated codes: `music_note`,
+  `card_giftcard`, `star`, `favorite`, `local_bar`, `local_cafe`, `mic`,
+  `celebration`, `emoji_events`, `album`, `checkroom`, `headphones`. Mobile
+  and web audience UIs render the same curated set.
+- Every newly created project automatically receives a default repeating
+  `free_request` threshold at $40 (`threshold_cents=4000`,
+  `reward_label="Free Song Request"`, `reward_icon="music_note"`). Owners
+  can edit or delete it.
 - Each paid tip increments the audience member's `cumulative_tip_cents` on
   their `audience_profile`. This value only grows; it never resets.
 - Claims are tracked in `audience_reward_claims` (one row per claim).
