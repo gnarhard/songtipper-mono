@@ -858,10 +858,15 @@ paths:
         '200':
           description: Song deleted
 
-  /me/projects/{projectId}/repertoire/{projectSongId}/versions:
+  /me/projects/{projectId}/repertoire/{projectSongId}/clone:
     post:
       tags: [Repertoire]
-      summary: Create alternate version of a repertoire song
+      summary: Clone a repertoire song as a new alternate version
+      description: |
+        Creates a new `project_song` row for the same `song_id` and
+        `project_id` as the source, owned by the caller, with a distinct
+        `version_label`. Optionally clones charts (with their renders) and
+        the latest saved chart annotations onto the new version.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ProjectId'
@@ -877,35 +882,38 @@ paths:
               properties:
                 version_label:
                   type: string
+                  minLength: 1
                   maxLength: 50
                   description: Label for the alternate version (e.g., "Acoustic", "Solo")
-                energy_level: { type: string, nullable: true }
-                genre: { type: string, nullable: true }
-                theme:
-                  allOf:
-                    - $ref: '#/components/schemas/SongTheme'
-                  nullable: true
-                instrumental: { type: boolean }
-                is_public: { type: boolean, default: true }
-                performed_musical_key: { type: string, nullable: true }
-                tuning: { type: string, nullable: true }
-                capo: { type: integer, nullable: true, minimum: 0, maximum: 12 }
-                notes: { type: string, nullable: true, maxLength: 3000 }
-                copy_charts:
+                include_charts:
                   type: boolean
-                  description: Clone charts from the source version
-                  default: false
+                  default: true
+                  description: Clone charts and their renders from the source version.
+                include_annotations:
+                  type: boolean
+                  default: true
+                  description: |
+                    Clone the latest saved chart annotations from the source
+                    version. Only honored when `include_charts=true`.
       responses:
         '201':
-          description: Version created
+          description: Alternate version created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SingleRepertoireResponse'
+                type: object
+                properties:
+                  message: { type: string }
+                  project_song:
+                    $ref: '#/components/schemas/RepertoireSong'
+                  copied_charts: { type: integer }
+                  copied_annotations: { type: integer }
+        '403':
+          description: Caller does not own the source project_song
         '409':
           description: Version label already exists for this song
         '422':
-          description: Repertoire limit reached
+          description: Repertoire limit reached or validation failed
 
   /me/projects/{projectId}/repertoire/bulk-import:
     post:
@@ -979,9 +987,27 @@ paths:
                   minItems: 1
                   items: { type: integer }
                 include_charts: { type: boolean, default: false }
+                include_annotations:
+                  type: boolean
+                  default: false
+                  description: |
+                    Clone saved chart annotations for each copied chart page.
+                    Only honored when `include_charts=true`.
       responses:
         '201':
           description: Copy complete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data:
+                    type: object
+                    properties:
+                      copied_songs: { type: integer }
+                      copied_charts: { type: integer }
+                      copied_annotations: { type: integer }
         '422':
           description: Repertoire limit reached
           content:

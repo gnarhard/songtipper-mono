@@ -1,4 +1,4 @@
-# Repertoire API Contracts (v1.4)
+# Repertoire API Contracts (v1.5)
 
 ## Scope and auth
 
@@ -68,6 +68,12 @@ Pull Owner Copy:
 - Member's existing versions are untouched.
 - Returns `422` if the song has no linked owner version.
 - Returns `404` if the owner's version no longer exists.
+- Body (all optional):
+  - `include_charts` (boolean, default `true`) — clone the owner's charts and
+    renders onto the new alternate.
+  - `include_annotations` (boolean, default `true`) — clone the owner's latest
+    chart annotations onto the cloned charts. Only honored when
+    `include_charts=true`; silently ignored otherwise.
 
 Song versions:
 - Field: `version_label`
@@ -201,6 +207,57 @@ Project-song notes:
 
 ### Delete
 - `DELETE /repertoire/{projectSongId}`
+
+### Clone (create alternate version from existing song)
+- `POST /repertoire/{projectSongId}/clone`
+- Creates a new `project_song` row for the **same** `song_id` and `project_id`
+  as the source, owned by the caller, with a distinct `version_label`.
+- Scoped to the caller: the source `projectSongId` must belong to the caller
+  in this project. Members can clone their own copies; owners can clone
+  owner-scoped rows.
+- Body:
+
+```json
+{
+  "version_label": "Acoustic",
+  "include_charts": true,
+  "include_annotations": true
+}
+```
+
+- Field rules:
+  - `version_label` (required string, 1–50 chars). Must not collide with an
+    existing `(project_id, user_id, song_id, version_label)` row for the
+    caller. Empty string is rejected.
+  - `include_charts` (optional boolean, default `true`). When `true`, each
+    chart attached to the source `project_song` is cloned (including
+    `ChartRender` rows and storage paths) and linked to the new
+    `project_song`.
+  - `include_annotations` (optional boolean, default `true`). When `true`,
+    the latest `chart_annotation_versions` row for each cloned source page is
+    copied onto the corresponding cloned chart, rewritten to the caller as
+    `owner_user_id`. Only honored when `include_charts=true`; silently
+    ignored otherwise.
+- Copied metadata mirrors the source `project_song` (title, artist, energy,
+  genre, theme, instrumental, mashup, is_public, performed key, tuning,
+  capo, notes, needs_improvement). `learned` is preserved. Performance
+  counters (`performance_count`, `last_performed_at`) are **not** copied.
+- Response `201`:
+
+```json
+{
+  "message": "Alternate version created.",
+  "project_song": { /* ProjectSongResource */ },
+  "copied_charts": 1,
+  "copied_annotations": 3
+}
+```
+
+- Errors:
+  - `403` if the caller does not own/have access to the source `project_song`.
+  - `409` if `version_label` already exists for the caller on this song.
+  - `422` with `code=repertoire_limit_reached` if the clone would exceed the
+    plan cap.
 
 ### Log performance
 - `POST /repertoire/{projectSongId}/performances`
@@ -356,7 +413,8 @@ Response (`200`):
 {
   "source_project_id": 1,
   "source_project_song_ids": [10, 11, 12],
-  "include_charts": true
+  "include_charts": true,
+  "include_annotations": true
 }
 ```
 
@@ -365,8 +423,16 @@ Behavior:
 - `source_project_song_ids` must all belong to `source_project_id`.
 - If `include_charts=true`, copies linked chart PDFs and rendered chart images
   for the selected songs into the destination project.
+- If `include_annotations=true`, copies the latest saved chart annotations for
+  each cloned chart page, rewriting `owner_user_id` to the authenticated user.
+  Only honored when `include_charts=true`; silently ignored otherwise.
+- Default: `include_charts` is `false` and `include_annotations` is `false`
+  when omitted, preserving prior behavior. Clients should default both to
+  `true` in new UI flows.
 - On a capped destination project (Free: 20, Pro: 200), copy is rejected once
   the project has reached its repertoire song limit.
+- Response `data` block adds `copied_annotations` alongside `copied_songs` and
+  `copied_charts`.
 
 ---
 

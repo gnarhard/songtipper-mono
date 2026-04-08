@@ -95,6 +95,18 @@ Added to all Chart resource responses:
 
 ## Chart Annotations
 
+Annotations are **project-song specific** via the chart that carries them:
+
+- `chart_annotation_versions` are keyed by `(chart_id, owner_user_id, page_number)`.
+- Every `Chart` belongs to exactly one `project_song` via `charts.project_song_id`.
+- A song's alternate versions (distinct `project_song` rows with different
+  `version_label`s) each own their own `Chart` rows, so annotations never
+  bleed between versions.
+- Clone / copy flows that duplicate charts (`POST /repertoire/{projectSongId}/clone`,
+  `POST /repertoire/copy-from`, `POST /repertoire/{projectSongId}/pull-owner-copy`)
+  can optionally carry annotations with the cloned chart. See
+  `contracts/repertoire.md` for the `include_annotations` flag.
+
 ### Get saved annotation
 - **Method**: `GET`
 - **Path**: `/api/v1/me/charts/{chartId}/pages/{page}/annotations/latest`
