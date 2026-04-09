@@ -329,6 +329,112 @@ Returned when the owning project does not expose
 
 ---
 
+## Delete Queue Request
+
+- **Method**: `DELETE`
+- **Path**: `/queue/{requestId}`
+
+Permanently remove an active request from the queue. Unlike marking as played,
+deleted requests do not appear in history. Both manual and non-manual requests
+can be deleted by the project owner or members with queue access.
+
+### Success response (`200`)
+
+```json
+{
+  "message": "Queue item deleted."
+}
+```
+
+### Error responses
+
+**User does not have access to project (`404`)**
+
+**Feature locked to Pro (`403`)**
+
+```json
+{
+  "code": "feature_requires_pro",
+  "message": "Queue access requires a Pro-owned project."
+}
+```
+
+**Item already played (`422`)**
+
+```json
+{
+  "message": "Only active queue items can be deleted."
+}
+```
+
+---
+
+## Reorder Queue
+
+- **Method**: `PUT`
+- **Path**: `/queue/reorder`
+
+Set a custom display order for the active queue. When a custom order is set, it
+takes precedence over the default tip-based sort. New requests that arrive after
+reordering are appended to the end of the custom order.
+
+### Request body
+
+```json
+{
+  "request_ids": [3, 1, 2]
+}
+```
+
+`request_ids` must contain exactly the set of currently active request IDs. Any
+mismatch (missing or extra IDs) returns `422`.
+
+### Success response (`200`)
+
+```json
+{
+  "message": "Queue reordered.",
+  "data": [
+    {
+      "id": 3,
+      "song": { "id": 10, "title": "Bohemian Rhapsody", "artist": "Queen" },
+      "tip_amount_cents": 500,
+      "tip_amount_dollars": "5",
+      "status": "active",
+      "requester_name": null,
+      "note": null,
+      "is_manual": true,
+      "request_location": null,
+      "played_at": null,
+      "created_at": "2026-02-14T17:10:00+00:00"
+    }
+  ]
+}
+```
+
+### Error responses
+
+**User does not have access to project (`404`)**
+
+**Feature locked to Pro (`403`)**
+
+```json
+{
+  "code": "feature_requires_pro",
+  "message": "Queue access requires a Pro-owned project."
+}
+```
+
+**ID mismatch (`422`)**
+
+```json
+{
+  "message": "request_ids must contain exactly the current active request IDs."
+}
+```
+
+---
+
 ## Mark Request as Played
 
 - **Method**: `POST`
