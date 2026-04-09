@@ -63,7 +63,19 @@ Queue is ordered by `tip_amount_cents DESC`, then `created_at ASC`.
       "gross_tip_amount_cents": 12300,
       "local_date": "2026-03-12",
       "timezone": "America/Denver"
-    }
+    },
+    "pending_rewards": [
+      {
+        "id": 17,
+        "reward_threshold_id": 4,
+        "reward_label": "Free CD",
+        "reward_icon": "album",
+        "reward_icon_emoji": "💿",
+        "reward_description": "Come up to the stage after the song.",
+        "audience_display_name": "Jane Smith",
+        "earned_at": "2026-04-08T19:32:14+00:00"
+      }
+    ]
   }
 }
 ```
@@ -78,8 +90,19 @@ Queue is ordered by `tip_amount_cents DESC`, then `created_at ASC`.
 - `request_location` is the human-readable location of the tipper resolved
   asynchronously from their IP address (e.g. `"Denver, Colorado, US"`). It is
   `null` when the lookup has not completed, failed, or the IP was private/local.
-- The queue `ETag` must change when either the active queue payload or the
-  `daily_record_event` changes.
+- `meta.pending_rewards` lists physical reward claims (any reward type other
+  than `free_request`) that an audience member has earned but the performer has
+  not yet handed over. Items are ordered oldest first by `earned_at`. Free
+  request rewards never appear here — they are claimed at redemption time. The
+  list is `[]` when there is nothing pending.
+  - `audience_display_name` is `null` when the audience profile has no name.
+  - `reward_icon` is the curated icon code (e.g. `album`, `star`, `gift`) and
+    `reward_icon_emoji` is the corresponding emoji glyph for clients that
+    can't render the icon set.
+  - `reward_description` is the optional handover instructions configured on
+    the threshold (e.g. "Come up to the stage after the song.").
+- The queue `ETag` must change when the active queue payload, the
+  `daily_record_event`, or the `pending_rewards` set changes.
 
 ### Not Modified response (`304`)
 
@@ -334,3 +357,44 @@ Mark a request as played.
 ### Error response (`403`)
 
 Not authorized to mark this request.
+
+---
+
+## Mark Reward Claim as Delivered
+
+- **Method**: `POST`
+- **Path**: `/me/reward-claims/{rewardClaimId}/delivered` (note: not scoped to project in path)
+
+Mark a pending physical reward claim as physically handed over to the audience
+member. The performer triggers this by tapping the reward in their queue.
+
+The endpoint is **idempotent**: calling it on a claim that is already delivered
+preserves the original `claimed_at` timestamp and still returns `200`.
+
+After this call, the claim is removed from the next `meta.pending_rewards`
+payload and the `delivered_at` timestamp counts toward
+`RewardThresholdService::availableClaims` (so it correctly exhausts a
+non-repeating reward and progresses a repeating one).
+
+### Success response (`200`)
+
+```json
+{
+  "message": "Reward marked as delivered.",
+  "reward_claim": {
+    "id": 17,
+    "reward_threshold_id": 4,
+    "reward_label": "Free CD",
+    "reward_icon": "album",
+    "reward_icon_emoji": "💿",
+    "reward_description": "Come up to the stage after the song.",
+    "audience_display_name": "Jane Smith",
+    "earned_at": "2026-04-08T19:32:14+00:00"
+  }
+}
+```
+
+### Error response (`404`)
+
+Returned when the reward claim does not exist or its threshold belongs to a
+project the authenticated user does not have access to.
