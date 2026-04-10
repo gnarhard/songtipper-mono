@@ -773,6 +773,39 @@ textTheme: const TextTheme(
 * **Place doc comments before annotations:** Documentation should come before
   any metadata annotations.
 
+## Screen Layout
+
+### MaxWidthAppBar and content padding
+
+Every routed screen **must** use `MaxWidthAppBar` (from
+`features/shell/presentation/app_shell.dart`) instead of a plain `AppBar`.
+`MaxWidthAppBar` constrains the toolbar content to `AppTheme.contentMaxWidth`
+on wide screens so that titles and actions don't drift to the screen edges,
+while the background colour still spans the full width.
+
+```dart
+// Correct
+appBar: const MaxWidthAppBar(title: Text('My Screen')),
+
+// Wrong — plain AppBar breaks the wide-screen layout contract
+appBar: AppBar(title: const Text('My Screen')),
+```
+
+For scrollable body content, wrap padding with `appContentPadding()` (also
+from `app_shell.dart`) so horizontal insets grow symmetrically on wide screens:
+
+```dart
+body: SingleChildScrollView(
+  child: Padding(
+    padding: appContentPadding(
+      context,
+      base: const EdgeInsets.symmetric(horizontal: 16),
+    ),
+    child: ...,
+  ),
+),
+```
+
 ## Accessibility (A11Y)
 Implement accessibility features to empower all users, assuming a wide variety
 of users with different physical abilities, mental abilities, age groups,
