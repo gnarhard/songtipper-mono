@@ -45,6 +45,10 @@ Setlist routes:
   Returns `422` if already archived.
 - `POST /setlists/{setlistId}/restore` — clears `archived_at`.
   Returns `422` if not archived.
+- `POST /setlists/{setlistId}/duplicate` — creates a copy of the setlist
+  (including all sets and songs) in the same project. The duplicated setlist
+  name is `"{original name} (Copy)"`. Returns the new setlist. Requires
+  internet connection (no offline fallback).
 - `DELETE /setlists/{setlistId}` — permanent delete (prefer archive).
 
 Setlist resource fields:
