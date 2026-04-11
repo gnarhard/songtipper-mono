@@ -415,6 +415,50 @@ Returns personal analytics for a venue scoped to the authenticated project.
 
 ---
 
+## List Venue Sessions
+
+- **Method**: `GET`
+- **Path**: `/venues/{venueId}/sessions`
+- **Route prefix**: `/api/v1/me/projects/{project_id}`
+
+Returns all completed (non-active) performance sessions for a specific venue, ordered by `started_at DESC`. Used by the mobile app to render the session list on the venue detail screen.
+
+### Success response (`200`)
+
+```json
+{
+  "data": [
+    {
+      "id": 42,
+      "started_at": "2026-04-10T20:00:00+00:00",
+      "ended_at": "2026-04-10T23:00:00+00:00",
+      "gig_type": "public",
+      "song_count": 14
+    }
+  ]
+}
+```
+
+**Response fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | int | Performance session ID. |
+| `started_at` | ISO 8601 or null | Session start timestamp. |
+| `ended_at` | ISO 8601 or null | Session end timestamp. |
+| `gig_type` | string or null | Gig type enum value (e.g. `public`, `private_event`). |
+| `song_count` | int | Number of `SongPerformance` records logged during this session. |
+
+**Notes:**
+- Active sessions (`is_active = true`) are excluded.
+- Sessions from other venues or projects are excluded.
+
+### Error responses
+
+**Venue not found or cross-project (`404`):** Same as other venue endpoints.
+
+---
+
 ## Search Crowd-Sourced Venues
 
 - **Method**: `GET`
