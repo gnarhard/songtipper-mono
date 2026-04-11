@@ -16,14 +16,16 @@
 
 List all venues for the project, paginated and ordered by `name ASC`.
 
+`session_count` reflects only **qualifying sessions** — the same criteria as the Venue Analytics endpoint (completed, duration ≥ 45 min, tips ≥ 1 cent, non-private). Active or short sessions with no tips are excluded.
+
 ### Query parameters
 
 | Param | Type | Description |
 |-------|------|-------------|
 | `per_page` | int | Items per page (default: 50) |
 | `page` | int | Page number |
-| `start_date` | `YYYY-MM-DD` | Optional. Scopes `session_count` to sessions starting on or after this date. When provided, venues with no qualifying sessions in the range are excluded. |
-| `end_date` | `YYYY-MM-DD` | Optional. Scopes `session_count` to sessions ending on or before this date (inclusive through `23:59:59`). |
+| `start_date` | `YYYY-MM-DD` | Optional. Scopes `session_count` to qualifying sessions starting on or after this date. When provided, venues with no qualifying sessions in the range are excluded. |
+| `end_date` | `YYYY-MM-DD` | Optional. Scopes `session_count` to qualifying sessions ending on or before this date (inclusive through `23:59:59`). |
 
 ### Success response (`200`)
 
