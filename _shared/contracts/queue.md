@@ -512,3 +512,47 @@ non-repeating reward and progresses a repeating one).
 
 Returned when the reward claim does not exist or its threshold belongs to a
 project the authenticated user does not have access to.
+
+---
+
+## Delete Performance Session
+
+- **Method**: `DELETE`
+- **Path**: `/me/projects/{project_id}/performances/{sessionId}`
+- **Route prefix**: `/api/v1`
+
+Permanently deletes a past performance session and recalculates song stats.
+
+**Cascade behavior:**
+- All `SongPerformance` records linked to the session are deleted. Because the FK on `song_performances.performance_session_id` is `nullOnDelete`, the app must delete them explicitly before removing the session — the service handles this.
+- `performance_session_items` are deleted via database `CASCADE`.
+- `requests.performance_session_id` and `cash_tips.performance_session_id` are set to `NULL` via `nullOnDelete`; the request and cash tip records themselves are preserved.
+
+**Stat recalculation:**
+For each `ProjectSong` that had records in the deleted session, `performance_count` is recalculated from remaining `SongPerformance` rows and `last_performed_at` is set to the max `performed_at` of remaining rows (or `null` if none remain).
+
+### Headers
+
+- `Idempotency-Key`: UUID v4 (recommended for safe retries)
+
+### Success response (`204`)
+
+Empty body.
+
+### Error responses
+
+**Active session (`422`):**
+
+```json
+{
+  "message": "Cannot delete an active performance session."
+}
+```
+
+**Session not found or cross-project (`404`):**
+
+```json
+{
+  "message": "Not found."
+}
+```
