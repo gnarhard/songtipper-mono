@@ -145,14 +145,27 @@ Validation:
 - `sets.*.prompt`: required string, min 3, max 500 (should include desired song count)
 
 Semantics:
-- The backend loads the full project repertoire with effective metadata
-  (energy, era, genre, theme) and sends it to the configured AI provider
-  along with the per-set prompts.
-- The AI selects songs from the repertoire only (no invented songs).
+- The backend loads the project repertoire **filtered to songs where
+  `learned = true` and `is_public = true`**, with effective metadata
+  (energy, era, genre, theme, duration, instrumental, mashup, version_label,
+  last_performed_at, request_count, performance_count, total_tip_amount_cents)
+  and sends it to the configured AI provider along with the per-set prompts.
+- The backend also sends the performer's historical performance patterns
+  (song-to-song transitions, opener/closer affinities, energy/theme slot
+  distributions from past sessions) so the AI can order songs intelligently.
+- The AI selects songs from the repertoire only (no invented songs) and
+  orders them using the history context. It returns a short reason per song
+  explaining why it was placed in that position.
 - Songs are not duplicated across sets unless the repertoire is too small.
-- If the repertoire is empty, endpoint returns `422`.
+- If the prompt implies a set duration (e.g. "45 minute set"), the AI
+  estimates song count using each song's `duration_in_seconds`.
+- If estimated response size exceeds provider token limits, the backend
+  splits sets across multiple AI calls and merges the results transparently.
+- If no songs in the repertoire are both learned and public, endpoint returns `422`.
 - If the AI provider fails, endpoint returns `422`.
 - Creates multiple sets in one call, each populated with the AI-selected songs.
+- Each song in the response includes `ai_reason` (nullable string, max 500 chars)
+  explaining why it was chosen and placed in that position.
 
 Removed (replaced by AI generation):
 - `POST /setlists/{setlistId}/sets/generate-smart`
