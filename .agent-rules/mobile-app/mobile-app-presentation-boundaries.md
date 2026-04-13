@@ -38,3 +38,28 @@ and application logic.
   dependencies before splitting widgets further.
 - Add or update unit tests around the new controller/service boundary whenever
   logic is moved out of a screen.
+
+## Filter panel toggle pattern
+
+Screens with filterable lists hide the filter panel behind an app-bar action
+button. Follow this pattern consistently:
+
+- **App-bar button**: use an `_AppBarTextAction`-style widget (icon + label
+  stacked vertically, fixed ~56 px width, `TextButton` base). Use
+  `Icons.tune` and the label `'Filters'`. Highlight the icon and label with
+  `colorScheme.primary` when any filter is non-default.
+- **State**: a single `bool _showFilters = false` on the screen's `State`.
+  Toggle it with `setState` in the button's `onPressed`.
+- **Animated reveal**: wrap the filter section in
+  `AnimatedSize(duration: 200 ms, curve: Curves.easeInOut, alignment:
+  Alignment.topCenter)` switching between the full panel and
+  `SizedBox.shrink()`.
+- **Rotation affordance**: wrap the `Icons.tune` in
+  `AnimatedRotation(turns: _showFilters ? 0.5 : 0.0)` so the icon flips
+  upside-down when filters are open, giving a clear open/close signal.
+- **Ownership**: filter visibility is ephemeral UI state owned by the screen,
+  not by the controller. The `showFilters` bool is passed down to the child
+  tab/widget as a constructor parameter.
+
+Screens currently following this pattern:
+`RepertoireListScreen`, `PerformScreen` (Previous tab).
