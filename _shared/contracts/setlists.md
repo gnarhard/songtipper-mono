@@ -320,8 +320,6 @@ Routes:
   "longitude": -104.990251,
   "gig_type": "public",
   "ended_reason": null,
-  "seed": null,
-  "generation_version": null,
   "started_at": "2026-04-01T20:00:00+00:00",
   "ended_at": null,
   "created_at": "...",
@@ -342,7 +340,7 @@ Routes:
 
 Start a new performance session. Two modes are available:
 
-**Setlist-based (mode = `manual` or `smart`):**
+**Setlist-based (mode = `manual`):**
 
 ```json
 {
@@ -368,9 +366,8 @@ Start a new performance session. Two modes are available:
 ```
 
 **Validation Rules:**
-- `mode`: required, one of `manual`, `smart`, `free_play`.
-- `setlist_id`: required when mode is `manual` or `smart`; **prohibited** when mode is `free_play`.
-- `seed`: optional integer when mode is `manual`/`smart`; **prohibited** when mode is `free_play`.
+- `mode`: required, one of `manual`, `free_play`.
+- `setlist_id`: required when mode is `manual`; **prohibited** when mode is `free_play`.
 - `venue_id`: optional, integer, must belong to the project.
 - `latitude`: optional, decimal, -90 to 90.
 - `longitude`: optional, decimal, -180 to 180.
@@ -436,7 +433,7 @@ The `ended_reason` field records which rule triggered the end: `manual`, `inacti
 ### General rules
 
 - Exactly one active session per project.
-- Session mode: `manual` or `smart`.
+- Session mode: `manual` or `free_play`.
 - `complete` records sequential `performed_order_index`.
 - `complete` for `source=setlist` also sends `setlist_song_id` so duplicate
   songs in one setlist are tracked as distinct performed entries.
