@@ -113,9 +113,9 @@ returned. Matching includes both the queue payload and the record-event state.
 
 ## Implicit Session Auto-Creation
 
-When a public request (digital tip) arrives for a project that has no active performance session, the server automatically creates an implicit session. This session has `is_implicit = true`, `venue_id = null`, and `started_at` set to the request's `created_at` timestamp. The implicit session follows the same auto-end rules as explicit sessions (4-hour inactivity, 6-hour hard cap).
+When a public request (digital tip) arrives for a project that has no active performance session, the server automatically creates an implicit session. This session has `is_implicit = true`, `location_id = null`, and `started_at` set to the request's `created_at` timestamp. The implicit session follows the same auto-end rules as explicit sessions (4-hour inactivity, 6-hour hard cap).
 
-If the performer later taps "Start Performance" while an implicit session is already active, the implicit session is promoted in place: the venue, timezone, latitude, longitude, gig type, and setlist are set on the existing session, and `is_implicit` flips to `false`. No new session is created.
+If the performer later taps "Start Performance" while an implicit session is already active, the implicit session is promoted in place: the location, timezone, latitude, longitude, gig type, and setlist are set on the existing session, and `is_implicit` flips to `false`. No new session is created.
 
 ---
 

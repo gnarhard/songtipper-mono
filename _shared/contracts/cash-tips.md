@@ -57,7 +57,7 @@ Record a cash tip received for a specific local date.
 **Fields:**
 - `performance_session_id`: nullable integer. Links the cash tip to the active performance session, if one existed at recording time. Set server-side; not a client input.
 
-When an active performance session exists for the project at the time of recording, the cash tip is automatically linked to that session (`performance_session_id` is set server-side). This ensures cash tips inherit venue attribution from the ongoing gig. If no active session exists, `performance_session_id` remains `null` -- a new session is NOT auto-created for cash tips.
+When an active performance session exists for the project at the time of recording, the cash tip is automatically linked to that session (`performance_session_id` is set server-side). This ensures cash tips inherit location attribution from the ongoing gig. If no active session exists, `performance_session_id` remains `null` -- a new session is NOT auto-created for cash tips.
 
 ### Error responses
 
@@ -211,4 +211,4 @@ Cash tips and manual queue item tips **are** included in the best-day record
 calculation, which sums digital request tips, cash tips, and manual queue item
 tips per local date.
 
-Cash tips with a `performance_session_id` inherit venue attribution through the linked session. Cash tips without a session are excluded from per-venue analytics but included in project-wide totals.
+Cash tips with a `performance_session_id` inherit location attribution through the linked session. Cash tips without a session are excluded from per-location analytics but included in project-wide totals.

@@ -1667,7 +1667,7 @@ flutter test       # Unit/widget tests
 
 3. **Advanced Analytics:**
    - Performance heat maps (which songs played most)
-   - Revenue analytics (tips over time)
+   - Relocation analytics (tips over time)
    - Audience demographics (future: user accounts)
 
 4. **Social Features:**

@@ -1,20 +1,20 @@
-# Venues API Contracts
+# Locations API Contracts
 
 ## Auth and scope
 
 - All endpoints below require `Authorization: Bearer <token>`.
 - All endpoints are performer-scoped and project-scoped via `{project_id}`.
 - Route prefix: `/api/v1/me/projects/{project_id}`
-- Venue management requires the user to own or have access to the project.
+- Location management requires the user to own or have access to the project.
 
 ---
 
-## List Venues
+## List Locations
 
 - **Method**: `GET`
-- **Path**: `/venues`
+- **Path**: `/locations`
 
-List all venues for the project, paginated and ordered by `name ASC`.
+List all locations for the project, paginated and ordered by `name ASC`.
 
 `session_count` reflects all **completed sessions** (`is_active=false`, `ended_at` not null). Active sessions are excluded.
 
@@ -24,7 +24,7 @@ List all venues for the project, paginated and ordered by `name ASC`.
 |-------|------|-------------|
 | `per_page` | int | Items per page (default: 50) |
 | `page` | int | Page number |
-| `start_date` | `YYYY-MM-DD` | Optional. Scopes `session_count` to qualifying sessions starting on or after this date. When provided, venues with no qualifying sessions in the range are excluded. |
+| `start_date` | `YYYY-MM-DD` | Optional. Scopes `session_count` to qualifying sessions starting on or after this date. When provided, locations with no qualifying sessions in the range are excluded. |
 | `end_date` | `YYYY-MM-DD` | Optional. Scopes `session_count` to qualifying sessions ending on or before this date (inclusive through `23:59:59`). |
 
 ### Success response (`200`)
@@ -66,12 +66,12 @@ List all venues for the project, paginated and ordered by `name ASC`.
 
 ---
 
-## Suggest Venue
+## Suggest Location
 
 - **Method**: `POST`
-- **Path**: `/venues/suggest`
+- **Path**: `/locations/suggest`
 
-Suggest nearby venues based on the performer's current GPS coordinates. Uses a two-layer lookup: existing project venues first (Layer 1, DB-only), then Google Places Nearby Search as a fallback (Layer 2/3, cached POI or live API call).
+Suggest nearby locations based on the performer's current GPS coordinates. Returns both existing project locations (Layer 1, DB within 152m) and Google Places Nearby Search results (Layer 2/3, within 2000m, cached POI or live API call). Both layers are always populated.
 
 Rate limited: **10 calls per minute per project.**
 
@@ -114,8 +114,8 @@ Rate limited: **10 calls per minute per project.**
 
 **Response fields:**
 
-- `nearby_existing`: project venues within 152 meters (500 ft) of the provided coordinates, ordered by distance ASC. These are Layer 1 results (DB-only, no external API cost).
-- `places_suggestions`: Google Places Nearby Search results for the coordinates. Only returned when `nearby_existing` is empty OR when the client explicitly requests them. These are Layer 2/3 results (cached POI lookup, falling back to a live Google Places API call). Google Places responses are cached server-side with a 30-day TTL using a rounded-coordinate key.
+- `nearby_existing`: project locations within 152 meters (500 ft) of the provided coordinates, ordered by distance ASC. These are Layer 1 results (DB-only, no external API cost).
+- `places_suggestions`: Google Places Nearby Search results within 2000 meters of the coordinates. Always populated regardless of whether `nearby_existing` has results. These are Layer 2/3 results (cached POI lookup, falling back to a live Google Places API call). Google Places responses are cached server-side with a 30-day TTL using a rounded-coordinate key.
 
 ### Error responses
 
@@ -123,18 +123,78 @@ Rate limited: **10 calls per minute per project.**
 
 ```json
 {
-  "message": "Too many venue suggestion requests. Try again later."
+  "message": "Too many location suggestion requests. Try again later."
 }
 ```
 
 ---
 
-## Create Venue
+## Search Places
 
 - **Method**: `POST`
-- **Path**: `/venues`
+- **Path**: `/locations/search-places`
 
-Create a new venue for the project.
+Search Google Places by text query near the performer's current position. Used for the location picker's text search field, allowing performers to find locations by name when GPS-based suggestions are insufficient.
+
+Rate limited: **10 calls per minute per project.**
+
+### Request body
+
+```json
+{
+  "query": "blue note",
+  "latitude": 39.7392,
+  "longitude": -104.9903
+}
+```
+
+**Validation Rules:**
+- `query`: required, string, min 2 characters
+- `latitude`: required, decimal, -90 to 90
+- `longitude`: required, decimal, -180 to 180
+
+### Success response (`200`)
+
+```json
+{
+  "places_suggestions": [
+    {
+      "name": "The Blue Note",
+      "address": "123 Jazz St, Denver, CO",
+      "latitude": 39.7392,
+      "longitude": -104.9903,
+      "places_provider_id": "ChIJ...",
+      "distance_meters": 150.0
+    }
+  ]
+}
+```
+
+**Response fields:**
+
+- `places_suggestions`: Google Places Text Search results biased toward the provided coordinates (50km radius). Up to 10 results. Not cached (text queries are too variable).
+
+### Error responses
+
+**Rate limited (`429`):**
+
+```json
+{
+  "message": "Too many place search requests. Please try again later."
+}
+```
+
+**Validation failure (`422`):**
+- Missing `query`, `latitude`, or `longitude`. Query must be at least 2 characters.
+
+---
+
+## Create Location
+
+- **Method**: `POST`
+- **Path**: `/locations`
+
+Create a new location for the project.
 
 ### Headers
 
@@ -191,15 +251,15 @@ Create a new venue for the project.
 
 ### Error responses
 
-**Duplicate venue name (`422`):**
+**Duplicate location name (`422`):**
 
 ```json
 {
   "message": "The given data was invalid.",
   "errors": {
-    "name": ["A venue with this name already exists in this project."]
+    "name": ["A location with this name already exists in this project."]
   },
-  "existing_venue": {
+  "existing_location": {
     "id": 1,
     "name": "Mike's Bar"
   }
@@ -211,12 +271,12 @@ Create a new venue for the project.
 
 ---
 
-## Update Venue
+## Update Location
 
 - **Method**: `PATCH`
-- **Path**: `/venues/{venueId}`
+- **Path**: `/locations/{locationId}`
 
-Update an existing venue. All fields are optional. `name` uniqueness is enforced if provided.
+Update an existing location. All fields are optional. `name` uniqueness is enforced if provided.
 
 ### Request body
 
@@ -234,7 +294,7 @@ Update an existing venue. All fields are optional. `name` uniqueness is enforced
 }
 ```
 
-**Validation Rules:** Same as Create Venue, but all fields are optional.
+**Validation Rules:** Same as Create Location, but all fields are optional.
 
 ### Success response (`200`)
 
@@ -260,7 +320,7 @@ Update an existing venue. All fields are optional. `name` uniqueness is enforced
 
 ### Error responses
 
-**Venue not found or cross-project (`404`):**
+**Location not found or cross-project (`404`):**
 
 ```json
 {
@@ -268,15 +328,15 @@ Update an existing venue. All fields are optional. `name` uniqueness is enforced
 }
 ```
 
-**Duplicate venue name (`422`):**
+**Duplicate location name (`422`):**
 
 ```json
 {
   "message": "The given data was invalid.",
   "errors": {
-    "name": ["A venue with this name already exists in this project."]
+    "name": ["A location with this name already exists in this project."]
   },
-  "existing_venue": {
+  "existing_location": {
     "id": 2,
     "name": "Mike's Updated Bar"
   }
@@ -285,24 +345,24 @@ Update an existing venue. All fields are optional. `name` uniqueness is enforced
 
 ---
 
-## Delete Venue
+## Delete Location
 
 - **Method**: `DELETE`
-- **Path**: `/venues/{venueId}`
+- **Path**: `/locations/{locationId}`
 
-Delete a venue. Deleting a venue sets `venue_id = null` on all linked `performance_sessions`. Past session data is preserved; only the venue label is removed.
+Delete a location. Deleting a location sets `location_id = null` on all linked `performance_sessions`. Past session data is preserved; only the location label is removed.
 
 ### Success response (`200`)
 
 ```json
 {
-  "message": "Venue deleted."
+  "message": "Location deleted."
 }
 ```
 
 ### Error responses
 
-**Venue not found or cross-project (`404`):**
+**Location not found or cross-project (`404`):**
 
 ```json
 {
@@ -312,12 +372,12 @@ Delete a venue. Deleting a venue sets `venue_id = null` on all linked `performan
 
 ---
 
-## Merge Venues
+## Merge Locations
 
 - **Method**: `POST`
-- **Path**: `/venues/merge`
+- **Path**: `/locations/merge`
 
-Merge two venues by repointing all `performance_sessions` from the source venue to the target venue, then deleting the source. Idempotent -- calling with an already-deleted source returns `200`.
+Merge two locations by repointing all `performance_sessions` from the source location to the target location, then deleting the source. Idempotent -- calling with an already-deleted source returns `200`.
 
 ### Headers
 
@@ -340,8 +400,8 @@ Merge two venues by repointing all `performance_sessions` from the source venue 
 
 ```json
 {
-  "message": "Venues merged.",
-  "venue": {
+  "message": "Locations merged.",
+  "location": {
     "id": 1,
     "project_id": 5,
     "name": "Mike's Bar",
@@ -361,7 +421,7 @@ Merge two venues by repointing all `performance_sessions` from the source venue 
 
 ### Error responses
 
-**Venue not found or cross-project (`404`):**
+**Location not found or cross-project (`404`):**
 
 ```json
 {
@@ -371,13 +431,13 @@ Merge two venues by repointing all `performance_sessions` from the source venue 
 
 ---
 
-## Venue Analytics (personal)
+## Location Analytics (personal)
 
 - **Method**: `GET`
-- **Path**: `/venues/{venueId}/analytics`
+- **Path**: `/locations/{locationId}/analytics`
 - **Route prefix**: `/api/v1/me/projects/{project_id}`
 
-Returns personal analytics for a venue scoped to the authenticated project. All completed sessions (`is_active=false`, `ended_at` not null) are included regardless of duration, tips, or gig type.
+Returns personal analytics for a location scoped to the authenticated project. All completed sessions (`is_active=false`, `ended_at` not null) are included regardless of duration, tips, or gig type.
 
 ### Success response (`200`)
 
@@ -410,13 +470,13 @@ Returns personal analytics for a venue scoped to the authenticated project. All 
 
 ---
 
-## List Venue Sessions
+## List Location Sessions
 
 - **Method**: `GET`
-- **Path**: `/venues/{venueId}/sessions`
+- **Path**: `/locations/{locationId}/sessions`
 - **Route prefix**: `/api/v1/me/projects/{project_id}`
 
-Returns all completed (non-active) performance sessions for a specific venue, ordered by `started_at DESC`. Used by the mobile app to render the session list on the venue detail screen.
+Returns all completed (non-active) performance sessions for a specific location, ordered by `started_at DESC`. Used by the mobile app to render the session list on the location detail screen.
 
 ### Success response (`200`)
 
@@ -446,22 +506,22 @@ Returns all completed (non-active) performance sessions for a specific venue, or
 
 **Notes:**
 - Active sessions (`is_active = true`) are excluded.
-- Sessions from other venues or projects are excluded.
+- Sessions from other locations or projects are excluded.
 
 ### Error responses
 
-**Venue not found or cross-project (`404`):** Same as other venue endpoints.
+**Location not found or cross-project (`404`):** Same as other location endpoints.
 
 ---
 
-## Search Crowd-Sourced Venues
+## Search Crowd-Sourced Locations
 
 - **Method**: `GET`
-- **Path**: `/me/venues/search`
+- **Path**: `/me/locations/search`
 - **Route prefix**: `/api/v1`
 - **Auth**: Bearer token required (not project-scoped).
 
-Search venues by name across all projects. Returns unique physical venues grouped by `places_provider_id`.
+Search locations by name across all projects. Returns unique physical locations grouped by `places_provider_id`.
 
 ### Query parameters
 
@@ -492,18 +552,18 @@ Search venues by name across all projects. Returns unique physical venues groupe
 **Notes:**
 - `has_analytics` is `true` when `performer_count >= 3`.
 - Max 20 results returned.
-- Only venues with a `places_provider_id` (i.e. Google Places-linked) appear in results.
+- Only locations with a `places_provider_id` (i.e. Google Places-linked) appear in results.
 
 ---
 
 ## Crowd-Sourced Analytics
 
 - **Method**: `GET`
-- **Path**: `/me/venues/crowd-sourced/{placesProviderId}/analytics`
+- **Path**: `/me/locations/crowd-sourced/{placesProviderId}/analytics`
 - **Route prefix**: `/api/v1`
 - **Auth**: Bearer token required (not project-scoped).
 
-Returns aggregated analytics for a physical venue across all performers who have played there.
+Returns aggregated analytics for a physical location across all performers who have played there.
 
 ### Success response (`200`)
 
@@ -526,7 +586,7 @@ Same shape as personal analytics, plus:
 
 ### Error response — insufficient data (`403`)
 
-Returned when fewer than 3 unique performers have qualifying sessions at this venue.
+Returned when fewer than 3 unique performers have qualifying sessions at this location.
 
 ```json
 {
@@ -545,10 +605,10 @@ Returned when fewer than 3 unique performers have qualifying sessions at this ve
 
 ## Error responses
 
-All venue endpoints follow the standard error shape from `_shared/api-contract-rules.md`:
+All location endpoints follow the standard error shape from `_shared/api-contract-rules.md`:
 
 **Cross-project access (`404`):**
-Returned when the venue belongs to a different project than the one in the route prefix. The response is identical to a missing venue to avoid leaking the existence of venues in other projects.
+Returned when the location belongs to a different project than the one in the route prefix. The response is identical to a missing location to avoid leaking the existence of locations in other projects.
 
 ```json
 {
@@ -556,7 +616,7 @@ Returned when the venue belongs to a different project than the one in the route
 }
 ```
 
-**Missing venue (`404`):**
+**Missing location (`404`):**
 
 ```json
 {

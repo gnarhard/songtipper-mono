@@ -82,7 +82,7 @@ enriched performances that occurred in that session.
       "session_id": 3,
       "started_at": "2026-04-08T20:00:00+00:00",
       "ended_at": "2026-04-08T23:30:00+00:00",
-      "venue_name": "The Rusty Nail",
+      "location_name": "The Rusty Nail",
       "gig_type": "public",
       "duration_minutes": 210,
       "song_count": 14,
@@ -139,7 +139,7 @@ enriched performances that occurred in that session.
 | `session_id` | integer | `performance_sessions.id` |
 | `started_at` | ISO 8601 UTC string \| null | When the session started |
 | `ended_at` | ISO 8601 UTC string \| null | When the session ended, or null if still active |
-| `venue_name` | string \| null | Venue name if a venue was assigned, otherwise null |
+| `location_name` | string \| null | Location name if a location was assigned, otherwise null |
 | `gig_type` | string \| null | Gig type enum value (e.g. `public`, `private_event`, `open_mic`, `rehearsal`), or null |
 | `duration_minutes` | integer \| null | Session duration in minutes; null when `started_at` or `ended_at` is unavailable |
 | `song_count` | integer | Number of `song_performances` records logged in this session |

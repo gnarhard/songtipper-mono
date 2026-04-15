@@ -324,8 +324,8 @@ Routes:
   "id": 1,
   "project_id": 5,
   "setlist_id": 3,
-  "venue_id": 1,
-  "venue": { "id": 1, "name": "Mike's Bar" },
+  "location_id": 1,
+  "location": { "id": 1, "name": "Mike's Bar" },
   "mode": "manual",
   "is_active": true,
   "is_implicit": false,
@@ -344,8 +344,8 @@ Routes:
 ```
 
 **Fields:**
-- `venue_id`: nullable integer. FK to `venues`.
-- `venue`: nullable embedded object with `id` and `name`. Null when `venue_id` is null.
+- `location_id`: nullable integer. FK to `locations`.
+- `location`: nullable embedded object with `id` and `name`. Null when `location_id` is null.
 - `is_implicit`: boolean. `true` for sessions auto-created by incoming public requests; `false` for performer-initiated sessions.
 - `timezone`: IANA timezone string. Required on explicit sessions.
 - `latitude`, `longitude`: nullable decimals. GPS coordinates of the performance location.
@@ -362,7 +362,7 @@ Start a new explicit performance session.
 {
   "setlist_id": 3,
   "mode": "manual",
-  "venue_id": 1,
+  "location_id": 1,
   "latitude": 39.7392358,
   "longitude": -104.990251,
   "timezone": "America/Denver",
@@ -373,13 +373,13 @@ Start a new explicit performance session.
 **Validation Rules:**
 - `setlist_id`: nullable integer. Not required. Implicit sessions have no setlist.
 - `mode`: required, one of `manual`, `smart`.
-- `venue_id`: optional, integer, must belong to the project.
+- `location_id`: optional, integer, must belong to the project.
 - `latitude`: optional, decimal, -90 to 90.
 - `longitude`: optional, decimal, -180 to 180.
 - `timezone`: required, valid IANA timezone identifier.
 - `gig_type`: optional, string, one of `public`, `private_event`, `open_mic`, `rehearsal`. Defaults to `public`.
 
-**Implicit session promotion:** If an implicit session (`is_implicit = true`) already exists for the project, the `start` call promotes it instead of returning `409`. The existing session's `venue_id`, `timezone`, `latitude`, `longitude`, `gig_type`, and `setlist_id` are updated with the provided values, and `is_implicit` is flipped to `false`. No new session is created.
+**Implicit session promotion:** If an implicit session (`is_implicit = true`) already exists for the project, the `start` call promotes it instead of returning `409`. The existing session's `location_id`, `timezone`, `latitude`, `longitude`, `gig_type`, and `setlist_id` are updated with the provided values, and `is_implicit` is flipped to `false`. No new session is created.
 
 **Explicit session conflict:** If an explicit session (`is_implicit = false`) already exists, returns `409 Conflict` as before.
 
@@ -387,13 +387,13 @@ Start a new explicit performance session.
 
 ### Update Past Session -- `PATCH /performances/{sessionId}`
 
-Update fields on a past (inactive) performance session. Use case: post-hoc venue labeling from sessions history.
+Update fields on a past (inactive) performance session. Use case: post-hoc location labeling from sessions history.
 
 **Request body:**
 
 ```json
 {
-  "venue_id": 1,
+  "location_id": 1,
   "gig_type": "private_event",
   "timezone": "America/Denver",
   "latitude": 39.7392358,
@@ -403,7 +403,7 @@ Update fields on a past (inactive) performance session. Use case: post-hoc venue
 
 **Validation Rules:**
 - Only works on inactive sessions (`is_active = false`). Returns `422` on active sessions.
-- `venue_id`: optional, nullable integer, must belong to the project.
+- `location_id`: optional, nullable integer, must belong to the project.
 - `gig_type`: optional, string, one of `public`, `private_event`, `open_mic`, `rehearsal`.
 - `timezone`: optional, valid IANA timezone identifier.
 - `latitude`: optional, decimal, -90 to 90.

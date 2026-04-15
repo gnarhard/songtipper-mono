@@ -78,11 +78,11 @@
 - Filename metadata supports `key`, `capo`, `tuning`, `energy`, `era`, `genre`, and `mood`
 - Mood token example: `Songname - Artist -- mood=party.pdf`
 
-## Venues
+## Locations
 
-- Routes: `GET|POST /venues`, `PATCH|DELETE /venues/{venueId}`, `POST /venues/suggest`, `POST /venues/merge`
-- Venues are project-scoped named locations where performers play
-- Linked to performance sessions via `performance_sessions.venue_id`
-- Venue suggestion uses GPS (500ft/152m radius match against existing venues) → Google Places Nearby Search fallback
+- Routes: `GET|POST /locations`, `PATCH|DELETE /locations/{locationId}`, `POST /locations/suggest`, `POST /locations/merge`
+- Locations are project-scoped named locations where performers play
+- Linked to performance sessions via `performance_sessions.location_id`
+- Location suggestion uses GPS (500ft/152m radius match against existing locations) → Google Places Nearby Search fallback
 - Google Places responses are cached server-side (30-day TTL, rounded-coord key)
-- Rate limit on `/venues/suggest`: 10/min per project
+- Rate limit on `/locations/suggest`: 10/min per project
