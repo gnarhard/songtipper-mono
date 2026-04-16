@@ -1369,6 +1369,37 @@ paths:
         '200':
           description: Recommendation
 
+  /me/projects/{projectId}/performances/{performanceSessionId}/resume:
+    post:
+      tags: [Performances]
+      summary: Resume a previously ended performance session
+      description: |
+        Re-activates a session that was stopped or auto-ended. Sets
+        `is_active=true`, clears `ended_at` and `ended_reason`, and refreshes
+        `started_at` to `now()` so the 6-hour hard cap restarts from the
+        resume point. Items, song performances, requests, and cash tips that
+        were already linked to the session remain attached.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - in: path
+          name: performanceSessionId
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Session resumed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceSessionResponse'
+        '404':
+          description: Session belongs to another project, or project is inaccessible
+        '409':
+          description: Another performance session is already active for this project
+        '422':
+          description: Session is already active
+
   /me/charts:
     get:
       tags: [Charts]
@@ -2936,6 +2967,7 @@ components:
                 properties:
                   id: { type: integer }
                   project_song_id: { type: integer }
+                  setlist_song_id: { type: integer, nullable: true }
                   status:
                     type: string
                     enum: [pending, performed, skipped]

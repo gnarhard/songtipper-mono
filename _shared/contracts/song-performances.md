@@ -139,8 +139,12 @@ enriched performances that occurred in that session.
 | `session_id` | integer | `performance_sessions.id` |
 | `started_at` | ISO 8601 UTC string \| null | When the session started |
 | `ended_at` | ISO 8601 UTC string \| null | When the session ended, or null if still active |
+| `location_id` | integer \| null | Location ID if a location was assigned, otherwise null |
 | `location_name` | string \| null | Location name if a location was assigned, otherwise null |
 | `gig_type` | string \| null | Gig type enum value (e.g. `public`, `private_event`, `open_mic`, `rehearsal`), or null |
+| `mode` | string \| null | Performance mode (e.g. `manual`, `smart`, `free_play`), or null |
+| `setlist_id` | integer \| null | ID of the associated setlist, or null for free-play sessions |
+| `setlist_name` | string \| null | Name of the associated setlist, or null for free-play sessions |
 | `duration_minutes` | integer \| null | Session duration in minutes; null when `started_at` or `ended_at` is unavailable |
 | `song_count` | integer | Number of `song_performances` records logged in this session |
 | `total_tips_cents` | integer | Combined digital + cash tips earned during this session, in cents |
