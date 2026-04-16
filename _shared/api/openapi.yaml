@@ -2027,6 +2027,7 @@ components:
         slug: { type: string }
         owner_user_id: { type: integer }
         performer_info_url: { type: string, nullable: true }
+        performer_track_url: { type: string, nullable: true }
         performer_profile_image_url: { type: string, nullable: true }
         min_tip_cents:
           type: integer
@@ -2111,6 +2112,10 @@ components:
       properties:
         name: { type: string, maxLength: 255 }
         performer_info_url:
+          type: string
+          nullable: true
+          maxLength: 2048
+        performer_track_url:
           type: string
           nullable: true
           maxLength: 2048
