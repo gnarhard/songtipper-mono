@@ -107,7 +107,13 @@
       "Read(//usr/local/bin/**)",
       "Bash(/opt/homebrew/bin/php artisan:*)",
       "Bash(./vendor/bin/pint --dirty --format agent)",
-      "Bash(dart format:*)"
+      "Bash(dart format:*)",
+      "mcp__dart__list_running_apps",
+      "Bash(git -C /Users/gerhard/Code/Sites/Valet/songtipper/web show -s --format='%ci | %s' 95ea956)",
+      "Bash(git -C /Users/gerhard/Code/Sites/Valet/songtipper/app show -s --format='%ci | %s' ece5558)",
+      "Bash(kill 8147)",
+      "Bash(fvm flutter *)",
+      "Bash(fvm dart *)"
     ],
     "read": {
       "deny": [
