@@ -58,6 +58,7 @@ All auth write endpoints accept an optional `Idempotency-Key` header.
         "is_accepting_requests": true,
         "is_accepting_tips": true,
         "is_accepting_original_requests": true,
+        "notify_on_request": true,
         "show_persistent_queue_strip": true,
         "owner_user_id": 1,
         "payout_setup_complete": false,

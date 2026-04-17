@@ -161,6 +161,72 @@ When updating a project:
 
 ---
 
+## Notification gate (invisible requests)
+
+When a project is accepting requests with no active notification channel, the
+owner has no passive way to notice incoming requests — neither email nor the
+persistent queue strip is visible. Disabling both can be intentional (a sideman
+at another leader's gig, a soloist with requests temporarily paused), so this
+is a confirmation gate rather than a hard block.
+
+### Rule
+
+If the **resulting** project state would have all three of:
+
+- `is_accepting_requests = true`
+- `notify_on_request = false`
+- `show_persistent_queue_strip = false`
+
+…and the payload does not include `acknowledge_invisible_requests = true`, the
+API returns `422`:
+
+```json
+{
+  "code": "notification_channel_required",
+  "message": "You are about to disable all request notifications. Confirm to proceed.",
+  "details": { "required_field": "acknowledge_invisible_requests" }
+}
+```
+
+On retry with `acknowledge_invisible_requests: true`, the update succeeds. The
+flag is ephemeral per-request and is never persisted.
+
+### Transition semantics (required)
+
+The gate fires only on transitions *into* the dangerous state. Evaluation:
+
+1. Compute the resulting state by merging the incoming payload over existing
+   project values (this matters for `PATCH`).
+2. If the resulting state is not `requests=on, email=off, strip=off`, pass.
+3. If the resulting state is the dangerous one, check whether the *incoming
+   payload* flips at least one of `is_accepting_requests`,
+   `notify_on_request`, or `show_persistent_queue_strip` toward that state
+   (i.e. `is_accepting_requests` to `true`, or either notification field to
+   `false`). If no relevant field is toggled, pass — the performer is already
+   in the state and is editing something unrelated (e.g. `name`).
+4. Otherwise, require `acknowledge_invisible_requests=true` or return 422.
+
+This prevents repeat-confirmation regressions when performers already in the
+state save unrelated settings.
+
+### Scope
+
+The gate applies to `PUT /{projectId}` and `PATCH /{projectId}`. Create
+(`POST /`) is not gated — new projects inherit safe defaults
+(`notify_on_request=true`, `show_persistent_queue_strip=true`), and the
+creation payload does not accept these fields as overrides.
+
+### Client expectations
+
+- On `422` with `code=notification_channel_required`, surface a confirmation
+  dialog explaining the consequence (incoming requests will be invisible
+  unless the performer manually opens the queue screen) and retry the original
+  payload with `acknowledge_invisible_requests: true`.
+- Do not persist the flag locally or re-send it on unrelated subsequent
+  updates — the backend re-evaluates transition semantics each request.
+
+---
+
 ## Wallet endpoints related to projects
 
 - `GET /api/v1/me/projects/{projectId}/wallet`
@@ -224,6 +290,7 @@ If the owning project is not on Pro, these endpoints return `403` with
 - `is_accepting_original_requests`
 - `notify_on_request`
 - `show_persistent_queue_strip`
+- `acknowledge_invisible_requests` (ephemeral per-request flag; not persisted; see notification gate above)
 - `public_repertoire_set_id` (nullable int; set to override public song list, null to reset)
 - `min_suggested_setlist_songs` (int, 1..100)
 - `max_suggested_setlist_songs` (int, 1..100; must be >= min)
