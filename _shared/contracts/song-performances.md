@@ -196,6 +196,22 @@ Additional fields for `event_type: "reward_claimed"`:
 | `audience_name` | string \| null | The audience member's display name, if known |
 | `tip_amount_cents` | integer | Always `0` for reward claims |
 
+### POST `/api/v1/me/projects/{project}/performances/{performanceSession}/synopsis`
+
+Queues a background job to (re)generate the session's `ai_synopsis` via the
+configured Anthropic model. The server does **not** auto-generate synopses —
+the performer must explicitly request one.
+
+- Returns **202 Accepted** with `{"data":{"session_id":…,"status":"queued"}}`.
+- Overwrites any existing synopsis on success.
+- **422** if the session has not ended (`ended_at` is null).
+- **503** if the server has no Anthropic API key configured.
+- **404** if the session does not belong to the authenticated user's project.
+
+Clients should poll `GET …/performances/{performanceSession}/events` and
+detect completion by observing a new `ai_synopsis_generated_at` timestamp on
+the session payload.
+
 ## Notes
 
 - `is_first_performance` is computed per `project_song_id` across the project's

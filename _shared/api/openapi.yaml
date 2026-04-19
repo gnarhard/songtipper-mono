@@ -1432,6 +1432,45 @@ paths:
         '404':
           description: Session belongs to another project, or project is inaccessible
 
+  /me/projects/{projectId}/performances/{performanceSessionId}/synopsis:
+    post:
+      tags: [Performances]
+      summary: Queue AI synopsis (re)generation for a performance session
+      description: |
+        Dispatches a background job that regenerates the performance session's
+        `ai_synopsis` using the configured Anthropic model. Always overwrites
+        any existing synopsis. Returns immediately with `202`; clients should
+        poll `GET /me/projects/{projectId}/performances/{performanceSessionId}/events`
+        and watch for a new `ai_synopsis_generated_at` timestamp to detect
+        completion. The server does not auto-generate synopses on read — the
+        performer must request it explicitly.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - in: path
+          name: performanceSessionId
+          required: true
+          schema: { type: integer }
+      responses:
+        '202':
+          description: Synopsis generation queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      session_id: { type: integer }
+                      status: { type: string, enum: [queued] }
+        '404':
+          description: Session belongs to another project, or project is inaccessible
+        '422':
+          description: Session has not ended (`ended_at` is null)
+        '503':
+          description: AI synopsis is not enabled on this server
+
   /me/charts:
     get:
       tags: [Charts]
