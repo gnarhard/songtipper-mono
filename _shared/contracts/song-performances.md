@@ -222,6 +222,28 @@ Additional fields for `event_type: "reward_claimed"`:
 | `audience_name` | string \| null | The audience member's display name, if known |
 | `tip_amount_cents` | integer | Always `0` for reward claims |
 
+### GET `/api/v1/me/projects/{project}/performances/{performanceSession}/events`
+
+Returns the full enriched timeline for a single performance session, including
+all session metadata and all events.
+
+**Response `200`**
+
+The top-level `data` object includes all fields from the paginated list
+endpoint's session object plus the following additional fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `setlist_id` | integer \| null | ID of the associated setlist, or null for free-play sessions |
+| `setlist_set_count` | integer \| null | Number of sets defined in the associated setlist, or null for free-play sessions |
+| `latitude` | float \| null | GPS latitude stored on the session, or null |
+| `longitude` | float \| null | GPS longitude stored on the session, or null |
+| `audience_conversion` | object | Audience page-view to conversion stats: `{total, converted, rate}` |
+| `ai_synopsis` | string \| null | AI-generated session summary, or null if not yet generated |
+| `ai_synopsis_generated_at` | ISO 8601 UTC string \| null | When the synopsis was generated, or null |
+| `performer_notes` | string \| null | Free-form performer notes for the session |
+| `events` | array | All timeline events, sorted most-recent first (same shape as the paginated list) |
+
 ### POST `/api/v1/me/projects/{project}/performances/{performanceSession}/synopsis`
 
 Queues a background job to (re)generate the session's `ai_synopsis` via the

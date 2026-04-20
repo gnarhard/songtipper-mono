@@ -114,7 +114,8 @@
       "Bash(kill 8147)",
       "Bash(fvm flutter *)",
       "Bash(fvm dart *)",
-      "Bash(./vendor/bin/pest --filter=\"TipBucketTotal\" --parallel)"
+      "Bash(./vendor/bin/pest --filter=\"TipBucketTotal\" --parallel)",
+      "Bash(./vendor/bin/pest --parallel)"
     ],
     "read": {
       "deny": [
