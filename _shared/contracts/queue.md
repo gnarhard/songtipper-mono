@@ -26,7 +26,10 @@ Queue is ordered by `tip_amount_cents DESC`, then `created_at ASC`.
 ### Query parameters
 
 - `timezone` (optional): IANA timezone used to compute the queue
-  `meta.daily_record_event`. Defaults to `UTC` when omitted or invalid.
+  `meta.daily_record_event`. When omitted or invalid, defaults to the
+  project's `reporting_timezone`. See
+  [`timezone-and-time.md`](timezone-and-time.md) for the full timezone
+  contract; UTC is never used as a performer-facing calendar-day boundary.
 
 ### Headers
 

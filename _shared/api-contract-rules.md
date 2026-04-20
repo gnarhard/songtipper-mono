@@ -85,9 +85,13 @@ All endpoints are prefixed with `/api/v1` to allow for future API versions witho
 
 ### 4. Dates and Times
 
-- All timestamps in ISO 8601 format with timezone
+See [`contracts/timezone-and-time.md`](contracts/timezone-and-time.md) for the
+full timezone contract (wire format, storage, display precedence, IANA rules).
+
+- All timestamps in ISO 8601 format with explicit UTC offset (`+00:00`)
 - Example: `2026-02-11T22:20:10+00:00`
-- Always UTC on server, client converts to local timezone
+- Always UTC on server, client converts to local timezone using the effective
+  timezone precedence (session → reporting → device)
 
 ### 5. Currency
 

@@ -201,7 +201,7 @@ Notes:
     - `page`: integer (1-indexed page number)
     - `url`: string (signed URL, 15-minute TTL)
     - `served_theme`: string (only present when served theme differs from requested theme)
-  - `updated_at`: nullable ISO 8601 string
+  - `updated_at`: nullable ISO 8601 UTC string (with `+00:00` offset). See [`timezone-and-time.md`](timezone-and-time.md).
 
 Notes:
 - Returns `404` if no renders are available.

@@ -9,6 +9,20 @@ card on the Home screen and the full "Performance History" screen.
 All endpoints require a valid Sanctum bearer token. The authenticated user must
 be the project owner or a project member. Non-members receive a `404`.
 
+## Timezone handling
+
+See [`timezone-and-time.md`](timezone-and-time.md) for the full contract.
+
+- All `*_at` fields are ISO 8601 UTC strings with an explicit `+00:00` offset.
+- Every history endpoint accepts an optional `timezone` query parameter (IANA
+  zone name, e.g. `America/Denver`). When omitted, the server defaults to the
+  project's `reporting_timezone`. This timezone is used to bucket date filters
+  (`start_date` / `end_date`) via per-row `CONVERT_TZ`, never via a per-request
+  fixed offset.
+- Responses include `session.timezone` (IANA name) so the client can render
+  timestamps in the zone the performance actually occurred in, using the
+  precedence: session timezone → project reporting timezone → device timezone.
+
 ## Endpoints
 
 ### GET `/api/v1/me/projects/{project}/song-performances/recent`
@@ -21,6 +35,7 @@ Returns the last 10 song performances for the project, ordered most-recent first
 |---|---|---|
 | `start_date` | `YYYY-MM-DD` | Optional. Only include performances on or after this local date. |
 | `end_date` | `YYYY-MM-DD` | Optional. Only include performances on or before this local date (inclusive through `23:59:59`). |
+| `timezone` | IANA string | Optional. Timezone used to bucket `start_date` / `end_date`. Defaults to the project's `reporting_timezone`. |
 
 **Response `200`**
 
@@ -72,6 +87,7 @@ enriched performances that occurred in that session.
 | Parameter | Default | Description |
 |---|---|---|
 | `page` | `1` | Page number |
+| `timezone` | project's `reporting_timezone` | Optional IANA zone name used to bucket session `local_date` fields |
 
 **Response `200`**
 
@@ -82,6 +98,7 @@ enriched performances that occurred in that session.
       "session_id": 3,
       "started_at": "2026-04-08T20:00:00+00:00",
       "ended_at": "2026-04-08T23:30:00+00:00",
+      "timezone": "America/Denver",
       "location_name": "The Rusty Nail",
       "gig_type": "public",
       "duration_minutes": 210,
@@ -140,6 +157,7 @@ enriched performances that occurred in that session.
 | `session_id` | integer | `performance_sessions.id` |
 | `started_at` | ISO 8601 UTC string \| null | When the session started |
 | `ended_at` | ISO 8601 UTC string \| null | When the session ended, or null if still active |
+| `timezone` | IANA string \| null | The IANA zone name recorded on the session, used for display precedence (session → reporting → device) |
 | `location_id` | integer \| null | Location ID if a location was assigned, otherwise null |
 | `location_name` | string \| null | Location name if a location was assigned, otherwise null |
 | `gig_type` | string \| null | Gig type enum value (e.g. `public`, `private_event`, `open_mic`, `rehearsal`), or null |

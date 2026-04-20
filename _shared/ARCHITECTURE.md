@@ -603,7 +603,7 @@ Song Tipper exposes a **RESTful JSON API** at `/api/v1`.
    - Success: `{ "data": ..., "meta": { ... } }`
    - Error: `{ "message": "...", "errors": { "field": ["..."] } }`
 3. **Snake Case:** JSON keys use `snake_case` (mapped to `camelCase` in Dart)
-4. **ISO 8601 Dates:** All timestamps in UTC with timezone offset
+4. **ISO 8601 Dates:** All timestamps in UTC with timezone offset (see [`contracts/timezone-and-time.md`](contracts/timezone-and-time.md))
 5. **Pagination:** Laravel's default paginator with `data`, `links`, `meta`
 6. **ETag Caching:** Queue endpoint supports `If-None-Match` for efficient polling
 7. **Idempotency:** Critical operations (annotations, bulk imports) use client-provided UUIDs
