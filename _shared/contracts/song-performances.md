@@ -202,6 +202,18 @@ Queues a background job to (re)generate the session's `ai_synopsis` via the
 configured Anthropic model. The server does **not** auto-generate synopses —
 the performer must explicitly request one.
 
+The synopsis is returned as lightweight markdown: 3–4 short lines separated by
+newlines, each leading with a `**bold label**` followed by a brief fact. No
+bullets, no headers, no other markdown. Clients should render `**…**` as bold
+and preserve line breaks.
+
+The prompt explicitly warns the model that `cash_tip` events in the timeline
+are logged **after** the performance when the performer counts their tip
+bucket (see the "Cash tip timing" note in `cash-tips.md`), so `t_offset_seconds`
+for a cash-tip event reflects the tally moment, not when cash tips arrived
+during the set. The model is told not to narrate cash tips as moment-in-time
+events.
+
 - Returns **202 Accepted** with `{"data":{"session_id":…,"status":"queued"}}`.
 - Overwrites any existing synopsis on success.
 - **422** if the session has not ended (`ended_at` is null).

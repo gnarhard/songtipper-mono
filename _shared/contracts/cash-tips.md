@@ -16,6 +16,20 @@
 
 Record a cash tip received for a specific performance session.
 
+### Cash tip timing
+
+Cash tips are typically entered **after** the performance ends, when the
+performer counts their tip bucket. A single `cash_tips` row therefore
+represents the bulk cash total received over the course of the set, not a
+specific moment during it. The API places no time restriction on entry: a
+performer can record (or edit/delete) a cash tip for any past session of their
+project. The derived `cash_tip` entry in `performance_events.occurred_at` is
+set to `cash_tips.created_at` (i.e. when the performer logged it), which is
+almost always after `performance_sessions.ended_at`. Consumers that plot
+events on a session timeline — and any AI summaries — must treat the
+`occurred_at` of a `cash_tip` event as a bucket-tally timestamp, not as the
+moment an individual cash tip was received.
+
 ### Headers
 
 - `Idempotency-Key`: UUID v4 (required for safe retries)
