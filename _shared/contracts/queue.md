@@ -529,7 +529,7 @@ Permanently deletes a past performance session and recalculates song stats.
 **Cascade behavior:**
 - All `SongPerformance` records linked to the session are deleted. Because the FK on `song_performances.performance_session_id` is `nullOnDelete`, the app must delete them explicitly before removing the session — the service handles this.
 - `performance_session_items` are deleted via database `CASCADE`.
-- `requests.performance_session_id` and `cash_tips.performance_session_id` are set to `NULL` via `nullOnDelete`; the request and cash tip records themselves are preserved.
+- `requests.performance_session_id` and `tip_bucket_totals.performance_session_id` are set to `NULL` via `nullOnDelete`; the request and tip bucket total records themselves are preserved.
 
 **Stat recalculation:**
 For each `ProjectSong` that had records in the deleted session, `performance_count` is recalculated from remaining `SongPerformance` rows and `last_performed_at` is set to the max `performed_at` of remaining rows (or `null` if none remain).
