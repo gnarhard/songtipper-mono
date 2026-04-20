@@ -635,13 +635,13 @@ paths:
         '502':
           description: Stripe settlement data unavailable
 
-  /me/projects/{projectId}/cash-tips:
+  /me/projects/{projectId}/tip-bucket-totals:
     get:
       tags: [Payouts]
-      summary: List cash tips for a project
+      summary: List tip bucket totals for a project
       description: |
-        Returns cash tips recorded for the project, optionally filtered by
-        local date. Paginated using standard Laravel pagination.
+        Returns tip bucket totals recorded for the project, optionally
+        filtered by local date. Paginated using standard Laravel pagination.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ProjectId'
@@ -660,17 +660,18 @@ paths:
           schema: { type: integer, default: 1 }
       responses:
         '200':
-          description: Paginated cash tips
+          description: Paginated tip bucket totals
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CashTipCollectionResponse'
+                $ref: '#/components/schemas/TipBucketTotalCollectionResponse'
     post:
       tags: [Payouts]
-      summary: Record a cash tip
+      summary: Record a tip bucket total
       description: |
-        Record a cash tip received for a specific local date. Cash tips are
-        standalone monetary records not tied to song requests or the queue.
+        Record the total cash collected in the performer's tip bucket over a
+        performance session. Tip bucket totals are standalone monetary
+        records not tied to song requests or the queue.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ProjectId'
@@ -680,28 +681,28 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StoreCashTipRequest'
+              $ref: '#/components/schemas/StoreTipBucketTotalRequest'
       responses:
         '201':
-          description: Cash tip recorded
+          description: Tip bucket total recorded
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CashTipResponse'
+                $ref: '#/components/schemas/TipBucketTotalResponse'
         '422':
           description: Validation failed
 
-  /me/projects/{projectId}/cash-tips/{cashTipId}:
+  /me/projects/{projectId}/tip-bucket-totals/{tipBucketTotalId}:
     patch:
       tags: [Payouts]
-      summary: Update a cash tip
+      summary: Update a tip bucket total
       description: |
-        Update a previously recorded cash tip. All mutable fields must be
-        provided (amount_cents, local_date, timezone, note).
+        Update a previously recorded tip bucket total. All mutable fields
+        must be provided (amount_cents, local_date, timezone, note).
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ProjectId'
-        - name: cashTipId
+        - name: tipBucketTotalId
           in: path
           required: true
           schema: { type: integer }
@@ -710,37 +711,37 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StoreCashTipRequest'
+              $ref: '#/components/schemas/StoreTipBucketTotalRequest'
       responses:
         '200':
-          description: Cash tip updated
+          description: Tip bucket total updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CashTipResponse'
+                $ref: '#/components/schemas/TipBucketTotalResponse'
         '404':
-          description: Project or cash tip not found
+          description: Project or tip bucket total not found
         '422':
           description: Validation failed
     delete:
       tags: [Payouts]
-      summary: Delete a cash tip
+      summary: Delete a tip bucket total
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ProjectId'
-        - name: cashTipId
+        - name: tipBucketTotalId
           in: path
           required: true
           schema: { type: integer }
       responses:
         '200':
-          description: Cash tip deleted
+          description: Tip bucket total deleted
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message: { type: string, example: Cash tip deleted. }
+                  message: { type: string, example: Tip bucket total deleted. }
 
   /me/projects/{projectId}/wallet/sessions:
     get:
@@ -1379,8 +1380,8 @@ paths:
         Re-activates a session that was stopped or auto-ended. Sets
         `is_active=true`, clears `ended_at` and `ended_reason`, and refreshes
         `started_at` to `now()` so the 6-hour hard cap restarts from the
-        resume point. Items, song performances, requests, and cash tips that
-        were already linked to the session remain attached.
+        resume point. Items, song performances, requests, and tip bucket
+        totals that were already linked to the session remain attached.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ProjectId'
@@ -2468,7 +2469,7 @@ components:
         gross_tip_amount_cents: { type: integer }
         fee_amount_cents: { type: integer }
         net_tip_amount_cents: { type: integer }
-        cash_tip_amount_cents: { type: integer, default: 0 }
+        tip_bucket_total_amount_cents: { type: integer, default: 0 }
     ProjectStatsCounts:
       type: object
       properties:
@@ -3189,7 +3190,7 @@ components:
         expected_render_count: { type: integer, minimum: 0, nullable: true }
         has_renders: { type: boolean }
         missing_render_file_count: { type: integer, minimum: 0 }
-    CashTipResource:
+    TipBucketTotalResource:
       type: object
       properties:
         id: { type: integer }
@@ -3199,7 +3200,7 @@ components:
         timezone: { type: string, example: America/Denver }
         note: { type: string, nullable: true }
         created_at: { type: string, format: date-time }
-    StoreCashTipRequest:
+    StoreTipBucketTotalRequest:
       type: object
       required: [amount_cents, local_date, timezone]
       properties:
@@ -3207,18 +3208,18 @@ components:
         local_date: { type: string, format: date, example: '2026-03-15' }
         timezone: { type: string, example: America/Denver }
         note: { type: string, maxLength: 255, nullable: true }
-    CashTipResponse:
+    TipBucketTotalResponse:
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/CashTipResource'
-    CashTipCollectionResponse:
+          $ref: '#/components/schemas/TipBucketTotalResource'
+    TipBucketTotalCollectionResponse:
       type: object
       properties:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/CashTipResource'
+            $ref: '#/components/schemas/TipBucketTotalResource'
         links:
           type: object
           additionalProperties: true

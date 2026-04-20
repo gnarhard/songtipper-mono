@@ -175,7 +175,7 @@ Semantics:
     - `label` — human-readable label, e.g. `"Mar 5"`
     - `net_cents` — Stripe net tip amount after fees
     - `fee_cents` — Stripe platform fee amount
-    - `cash_cents` — cash tips + manual queue tips (no fees)
+    - `cash_cents` — tip bucket totals + manual queue tips (no fees)
 - Buckets aggregate `performance_events` scoped to
   `performance_session_id IS NOT NULL`, bucketed by the event's
   `occurred_at` translated into the requested timezone. Activity not

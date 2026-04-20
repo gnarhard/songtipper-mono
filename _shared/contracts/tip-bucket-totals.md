@@ -1,34 +1,36 @@
-# Cash Tips API Contracts
+# Tip Bucket Total API Contracts
 
 ## Auth and scope
 
 - All endpoints below require `Authorization: Bearer <token>`.
 - All endpoints are performer-scoped and project-scoped via `{project_id}`.
 - Route prefix: `/api/v1/me/projects/{project_id}`
-- Cash tip management requires the user to own or have access to the project.
+- Tip bucket total management requires the user to own or have access to the project.
 
 ---
 
-## Record Cash Tip
+## Record Tip Bucket Total
 
 - **Method**: `POST`
-- **Path**: `/cash-tips`
+- **Path**: `/tip-bucket-totals`
 
-Record a cash tip received for a specific performance session.
+Record the total cash a performer accumulated in their tip bucket over a
+performance session.
 
-### Cash tip timing
+### Tip bucket total timing
 
-Cash tips are typically entered **after** the performance ends, when the
-performer counts their tip bucket. A single `cash_tips` row therefore
-represents the bulk cash total received over the course of the set, not a
-specific moment during it. The API places no time restriction on entry: a
-performer can record (or edit/delete) a cash tip for any past session of their
-project. The derived `cash_tip` entry in `performance_events.occurred_at` is
-set to `cash_tips.created_at` (i.e. when the performer logged it), which is
+A tip bucket total is typically entered **after** the performance ends, when
+the performer counts the cash in their tip bucket. A single
+`tip_bucket_totals` row therefore represents the bulk cash total collected
+over the course of the set, not a specific moment during it. The API places
+no time restriction on entry: a performer can record (or edit/delete) a tip
+bucket total for any past session of their project. The derived
+`tip_bucket_total` entry in `performance_events.occurred_at` is set to
+`tip_bucket_totals.created_at` (i.e. when the performer logged it), which is
 almost always after `performance_sessions.ended_at`. Consumers that plot
 events on a session timeline — and any AI summaries — must treat the
-`occurred_at` of a `cash_tip` event as a bucket-tally timestamp, not as the
-moment an individual cash tip was received.
+`occurred_at` of a `tip_bucket_total` event as a bucket-tally timestamp, not
+as the moment an individual cash tip was received.
 
 ### Headers
 
@@ -71,7 +73,7 @@ moment an individual cash tip was received.
 ```
 
 **Fields:**
-- `performance_session_id`: integer. The performance session this cash tip is explicitly linked to. Selected by the client; required on every request.
+- `performance_session_id`: integer. The performance session this tip bucket total is explicitly linked to. Selected by the client; required on every request.
 
 ### Error responses
 
@@ -83,12 +85,12 @@ moment an individual cash tip was received.
 
 ---
 
-## Update Cash Tip
+## Update Tip Bucket Total
 
 - **Method**: `PATCH`
-- **Path**: `/cash-tips/{cashTipId}`
+- **Path**: `/tip-bucket-totals/{tipBucketTotalId}`
 
-Update a previously recorded cash tip.
+Update a previously recorded tip bucket total.
 
 ### Request body
 
@@ -130,7 +132,7 @@ Update a previously recorded cash tip.
 
 **User does not have access to project (`404`)**
 
-**Cash tip not found or does not belong to project (`404`)**
+**Tip bucket total not found or does not belong to project (`404`)**
 
 **Validation failure (`422`):**
 - Missing or invalid `performance_session_id`, invalid `amount_cents`, missing `local_date`, invalid `timezone`, etc.
@@ -138,12 +140,12 @@ Update a previously recorded cash tip.
 
 ---
 
-## List Cash Tips
+## List Tip Bucket Totals
 
 - **Method**: `GET`
-- **Path**: `/cash-tips`
+- **Path**: `/tip-bucket-totals`
 
-List cash tips for the project, optionally filtered by local date.
+List tip bucket totals for the project, optionally filtered by local date.
 
 ### Query parameters
 
@@ -188,18 +190,18 @@ Standard paginated shape:
 
 ---
 
-## Delete Cash Tip
+## Delete Tip Bucket Total
 
 - **Method**: `DELETE`
-- **Path**: `/cash-tips/{cashTipId}`
+- **Path**: `/tip-bucket-totals/{tipBucketTotalId}`
 
-Remove a previously recorded cash tip.
+Remove a previously recorded tip bucket total.
 
 ### Success response (`200`)
 
 ```json
 {
-  "message": "Cash tip deleted."
+  "message": "Tip bucket total deleted."
 }
 ```
 
@@ -207,24 +209,27 @@ Remove a previously recorded cash tip.
 
 **User does not have access to project (`404`)**
 
-**Cash tip not found or does not belong to project (`404`)**
+**Tip bucket total not found or does not belong to project (`404`)**
 
 ---
 
 ## Stats Integration
 
-Cash tips are included in the project stats `money` section as a separate
-`cash_tip_amount_cents` field. This amount is **not** included in
-`gross_tip_amount_cents`, `fee_amount_cents`, or `net_tip_amount_cents` — those
-fields reflect only SongTipper (digital/Stripe) request tips.
+Tip bucket totals are included in the project stats `money` section as a
+separate `tip_bucket_total_amount_cents` field. This amount is **not**
+included in `gross_tip_amount_cents`, `fee_amount_cents`, or
+`net_tip_amount_cents` — those fields reflect only SongTipper
+(digital/Stripe) request tips.
 
-Tips on manual queue items (`payment_provider = 'none'`) are also included in
-`cash_tip_amount_cents` alongside manually-recorded cash tips. They are excluded
-from the digital tip fields (`gross_tip_amount_cents`, `net_tip_amount_cents`,
-`fee_amount_cents`) and from the tip-amount distribution and fee breakdown.
+Tips on manual queue items (`payment_provider = 'none'`) are also included
+in `tip_bucket_total_amount_cents` alongside manually-recorded tip bucket
+totals. They are excluded from the digital tip fields
+(`gross_tip_amount_cents`, `net_tip_amount_cents`, `fee_amount_cents`) and
+from the tip-amount distribution and fee breakdown.
 
-Cash tips and manual queue item tips **are** included in the best-day record
-calculation, which sums digital request tips, cash tips, and manual queue item
-tips per local date.
+Tip bucket totals and manual queue item tips **are** included in the
+best-day record calculation, which sums digital request tips, tip bucket
+totals, and manual queue item tips per local date.
 
-Cash tips inherit location attribution through the linked performance session.
+Tip bucket totals inherit location attribution through the linked
+performance session.
