@@ -56,8 +56,9 @@ Setlist resource fields:
   `archived_at`, `generation_meta`, `sets`.
 - `folder`: nullable string (max 255). Setlists with the same `folder`
   value are grouped together in the mobile UI.
-- `archived_at`: nullable ISO-8601 timestamp. Non-null means the setlist
-  is archived and hidden from the default list view.
+- `archived_at`: nullable ISO-8601 UTC timestamp (with `+00:00` offset).
+  Non-null means the setlist is archived and hidden from the default list view.
+  See [`timezone-and-time.md`](timezone-and-time.md).
 
 Removed (breaking change):
 - `POST /setlists/generate-smart`

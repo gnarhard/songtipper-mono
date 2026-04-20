@@ -470,7 +470,7 @@ Returns personal analytics for a location scoped to the authenticated project. A
 - `tip_range_by_day_of_week` keys are lowercase English day names; only days with at least one qualifying session are included.
 - `most_requested_songs` and `most_lucrative_songs` are capped at 10 entries each.
 - `ai_insights` and `ai_insights_generated_at` are `null` until enough data exists or the AI generation job completes.
-- DOW timezone uses the `timezone` stored on the performance session; falls back to UTC.
+- DOW timezone uses the `timezone` stored on the performance session; falls back to the project's `reporting_timezone`. See [`timezone-and-time.md`](timezone-and-time.md) for the full precedence rules.
 
 ---
 
