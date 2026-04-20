@@ -412,7 +412,7 @@ the caller cannot access the project.
     "gross_tip_amount_cents": 5000,
     "fee_amount_cents": 500,
     "net_tip_amount_cents": 4500,
-    "cash_tip_amount_cents": 2000
+    "tip_bucket_total_amount_cents": 2000
   },
   "counts": { "request_count": 12, "played_count": 14 },
   "rankings": {
@@ -487,7 +487,7 @@ Update fields on a past (inactive) performance session. Use case: post-hoc locat
 
 Active sessions are automatically ended by a server-side scheduled task running every 5 minutes. A session is ended when any of these conditions is met:
 
-- **Inactivity**: no new request, completed performance item, or cash tip linked to the session in the last 4 hours.
+- **Inactivity**: no new request, completed performance item, or tip bucket total linked to the session in the last 4 hours.
 - **Hard cap**: `started_at` is more than 6 hours ago.
 - **Superseded**: a new explicit session is started for the same project.
 

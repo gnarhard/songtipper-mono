@@ -109,9 +109,9 @@ enriched performances that occurred in that session.
           "tip_amount_cents": 300
         },
         {
-          "event_type": "cash_tip",
+          "event_type": "tip_bucket_total",
           "id": 3,
-          "cash_tip_id": 17,
+          "tip_bucket_total_id": 17,
           "occurred_at": "2026-04-08T21:00:00+00:00",
           "tip_amount_cents": 1000
         }
@@ -148,7 +148,7 @@ enriched performances that occurred in that session.
 | `setlist_name` | string \| null | Name of the associated setlist, or null for free-play sessions |
 | `duration_minutes` | integer \| null | Session duration in minutes; null when `started_at` or `ended_at` is unavailable |
 | `song_count` | integer | Number of `song_performances` records logged in this session |
-| `total_tips_cents` | integer | Combined digital + cash tips earned during this session, in cents |
+| `total_tips_cents` | integer | Combined digital + tip bucket totals earned during this session, in cents |
 | `performer_notes` | string \| null | Free-form notes the performer wrote about the session. Editable on past sessions only via the same `PATCH …/performances/{id}` endpoint as other session edits. Max 2000 characters. Fed into the AI synopsis prompt when set. |
 | `events` | array | All timeline events for this session, sorted most-recent first (see Event types below) |
 
@@ -158,7 +158,7 @@ Each event object has a discriminator field `event_type`. Shared fields:
 
 | Field | Type | Present on |
 |---|---|---|
-| `event_type` | `"song"` \| `"request"` \| `"tip_only"` \| `"original"` \| `"cash_tip"` \| `"reward_claimed"` | all |
+| `event_type` | `"song"` \| `"request"` \| `"tip_only"` \| `"original"` \| `"tip_bucket_total"` \| `"reward_claimed"` | all |
 | `id` | integer | all |
 | `occurred_at` | ISO 8601 UTC string | all |
 | `tip_amount_cents` | integer | all (0 when no tip) |
@@ -183,13 +183,13 @@ Additional fields for `event_type: "song"` and `event_type: "request"`:
 
 `event_type: "original"` — audience request for an original song. Appears once the performer marks the request played.
 
-`event_type: "cash_tip"` — cash tip logged by the performer during the session.
+`event_type: "tip_bucket_total"` — tip bucket total logged by the performer for the session (the full cash collected in their tip bucket).
 
-Additional field for `event_type: "cash_tip"`:
+Additional field for `event_type: "tip_bucket_total"`:
 
 | Field | Type | Description |
 |---|---|---|
-| `cash_tip_id` | integer \| null | Foreign key into `cash_tips.id`. Use this — not `id` (which is `performance_events.id`) — when calling `/cash-tips/{id}` endpoints. Null only on legacy rows that pre-date the link. |
+| `tip_bucket_total_id` | integer \| null | Foreign key into `tip_bucket_totals.id`. Use this — not `id` (which is `performance_events.id`) — when calling `/tip-bucket-totals/{id}` endpoints. Null only on legacy rows that pre-date the link. |
 
 `event_type: "reward_claimed"` — an audience reward claim that occurred during this session window. For non-free reward types this is when the audience crossed the threshold; for `free_request` rewards it is when the audience redeemed their free request. Anchored on `audience_reward_claims.created_at`. Sessions in progress (no `ended_at`) include claims up to "now"; ended sessions are frozen and do not gain reward entries afterward.
 
@@ -215,11 +215,12 @@ newlines, each leading with a `**bold label**` followed by a brief fact. No
 bullets, no headers, no other markdown. Clients should render `**…**` as bold
 and preserve line breaks.
 
-The prompt explicitly warns the model that `cash_tip` events in the timeline
-are logged **after** the performance when the performer counts their tip
-bucket (see the "Cash tip timing" note in `cash-tips.md`), so `t_offset_seconds`
-for a cash-tip event reflects the tally moment, not when cash tips arrived
-during the set. The model is told not to narrate cash tips as moment-in-time
+The prompt explicitly warns the model that `tip_bucket_total` events in the
+timeline are logged **after** the performance when the performer counts their
+tip bucket (see the "Tip bucket total timing" note in
+`tip-bucket-totals.md`), so `t_offset_seconds` for a tip-bucket-total event
+reflects the tally moment, not when individual cash tips arrived during the
+set. The model is told not to narrate tip bucket totals as moment-in-time
 events.
 
 - Returns **202 Accepted** with `{"data":{"session_id":…,"status":"queued"}}`.
