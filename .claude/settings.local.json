@@ -123,7 +123,10 @@
       "mcp__dart__hot_reload",
       "Bash(git -C app status)",
       "Bash(git -C app diff)",
-      "Bash(git -C app commit -m ' *)"
+      "Bash(git -C app commit -m ' *)",
+      "Bash(./vendor/bin/pest --parallel --filter=\"SongPerformanceHistory\")",
+      "Bash(./vendor/bin/pint --parallel)",
+      "Bash(dart test *)"
     ],
     "read": {
       "deny": [
