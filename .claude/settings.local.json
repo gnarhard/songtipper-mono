@@ -106,7 +106,7 @@
       "Read(//opt/homebrew/bin/**)",
       "Read(//usr/local/bin/**)",
       "Bash(/opt/homebrew/bin/php artisan:*)",
-      "Bash(./vendor/bin/pint --dirty --format agent)",
+      "Bash(./vendor/bin/pint *)",
       "Bash(dart format:*)",
       "mcp__dart__list_running_apps",
       "Bash(git -C /Users/gerhard/Code/Sites/Valet/songtipper/web show -s --format='%ci | %s' 95ea956)",
@@ -114,8 +114,6 @@
       "Bash(kill 8147)",
       "Bash(fvm flutter *)",
       "Bash(fvm dart *)",
-      "Bash(./vendor/bin/pest --filter=\"TipBucketTotal\" --parallel)",
-      "Bash(./vendor/bin/pest --parallel)",
       "mcp__dart__list_devices",
       "mcp__dart__launch_app",
       "mcp__dart__get_app_logs",
@@ -124,9 +122,9 @@
       "Bash(git -C app status)",
       "Bash(git -C app diff)",
       "Bash(git -C app commit -m ' *)",
-      "Bash(./vendor/bin/pest --parallel --filter=\"SongPerformanceHistory\")",
-      "Bash(./vendor/bin/pint --parallel)",
-      "Bash(dart test *)"
+      "Bash(dart test *)",
+      "Bash(awk '/^components:/{flag=1} flag && /^  schemas:/{flag=2} flag==2 && /^    [A-Z]/{print NR\": \"$0}' /Users/gerhard/Code/Sites/Valet/songtipper/_shared/api/openapi.yaml)",
+      "Bash(./vendor/bin/pest *)"
     ],
     "read": {
       "deny": [
