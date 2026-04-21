@@ -172,55 +172,72 @@ enriched performances that occurred in that session.
 
 **Event types**
 
-Each event object has a discriminator field `event_type`. Shared fields:
+Each event object has a discriminator field `event_type`. Shared fields present on every event:
 
-| Field | Type | Present on |
+| Field | Type | Notes |
 |---|---|---|
-| `event_type` | `"song"` \| `"request"` \| `"tip_only"` \| `"original"` \| `"tip_bucket_total"` \| `"reward_claimed"` | all |
-| `id` | integer | all |
-| `occurred_at` | ISO 8601 UTC string | all |
-| `tip_amount_cents` | integer | all (0 when no tip) |
+| `event_type` | string | See event-type table below |
+| `id` | integer | `performance_events.id` |
+| `occurred_at` | ISO 8601 UTC string | When the event occurred |
+| `tip_amount_cents` | integer | 0 when not applicable |
 
-`event_type: "song"` is emitted when the performance was not tied to an audience request. `event_type: "request"` is emitted when the same row matched a played request (`was_requested = true`); both event types share the identical field set below.
+**Complete event-type reference**
 
-Additional fields for `event_type: "song"` and `event_type: "request"`:
+| `event_type` | When emitted | Additional fields |
+|---|---|---|
+| `session_started` | Session was started | — |
+| `session_ended` | Session was stopped | — |
+| `song_queued` | Song was added to the queue (before played) | `project_song_id`, `title`, `artist` |
+| `song` | Song was performed — no matching audience request | `project_song_id`, `performance_session_id`, `title`, `artist`, `source`, `source_name`, `is_first_performance`, `was_requested` |
+| `request` | Song was performed and matched a played audience request | Same fields as `song` above, plus non-zero `tip_amount_cents` |
+| `song_skipped` | Song was skipped in the queue | `project_song_id`, `title`, `artist` |
+| `song_reordered` | Queue was reordered | — |
+| `tip_only` | Audience tip not attached to a song (Tip Jar Support) | non-zero `tip_amount_cents` |
+| `original` | Original song request marked as played | non-zero `tip_amount_cents` |
+| `request_updated` | A manual queue item's tip amount was edited | `tip_amount_cents` (new), `previous_tip_amount_cents` |
+| `request_voided` | A manual queue item was removed | `tip_amount_cents` (original amount) |
+| `tip_bucket_total` | Cash tip bucket total logged by the performer | `tip_bucket_total_id`, `tip_amount_cents` |
+| `tip_bucket_total_updated` | Cash tip bucket total was edited | `tip_bucket_total_id`, `tip_amount_cents` (new value) |
+| `tip_bucket_total_voided` | Cash tip bucket total was deleted | `tip_bucket_total_id`, `tip_amount_cents` (deleted amount) |
+| `reward_claimed` | Audience crossed a reward threshold during the session window | `reward_label`, `reward_icon`, `reward_type`, `threshold_cents`, `audience_name` |
+| `reward_delivered` | Performer confirmed a reward was physically delivered | `reward_label`, `reward_icon`, `reward_type`, `threshold_cents`, `audience_name` |
+| `link_clicked` | Audience member clicked a link on the project page | `link_type` |
+| `audience_page_viewed` | Audience member opened the project page | — |
+
+**Field details for song / request events**
 
 | Field | Type | Description |
 |---|---|---|
-| `project_song_id` | integer | The project-song that was performed |
+| `project_song_id` | integer | The project-song that was performed or queued |
 | `performance_session_id` | integer \| null | The session this performance belongs to |
-| `title` | string | Project-specific song title |
-| `artist` | string | Project-specific artist name |
-| `source` | `"repertoire"` \| `"setlist"` | How the performance was logged |
+| `title` | string \| null | Project-specific song title |
+| `artist` | string \| null | Project-specific artist name |
+| `source` | `"repertoire"` \| `"setlist"` \| null | How the performance was logged |
 | `source_name` | string \| null | The setlist name when `source` is `"setlist"`, otherwise null |
 | `is_first_performance` | boolean | True when this is the earliest ever performance of this project-song |
 | `was_requested` | boolean | True when a played request matched this session and song |
-| `tip_amount_cents` | integer | Gross tip from the matching request (`tip_amount_cents`), or 0 |
 
-`event_type: "tip_only"` — audience tip not attached to a specific song (Tip Jar Support requests). Appears as soon as the tip is received; does not require the performer to mark it played.
-
-`event_type: "original"` — audience request for an original song. Appears once the performer marks the request played.
-
-`event_type: "tip_bucket_total"` — tip bucket total logged by the performer for the session (the full cash collected in their tip bucket).
-
-Additional field for `event_type: "tip_bucket_total"`:
+**Field details for reward events (`reward_claimed` and `reward_delivered`)**
 
 | Field | Type | Description |
 |---|---|---|
-| `tip_bucket_total_id` | integer \| null | Foreign key into `tip_bucket_totals.id`. Use this — not `id` (which is `performance_events.id`) — when calling `/tip-bucket-totals/{id}` endpoints. Null only on legacy rows that pre-date the link. |
-
-`event_type: "reward_claimed"` — an audience reward claim that occurred during this session window. For non-free reward types this is when the audience crossed the threshold; for `free_request` rewards it is when the audience redeemed their free request. Anchored on `audience_reward_claims.created_at`. Sessions in progress (no `ended_at`) include claims up to "now"; ended sessions are frozen and do not gain reward entries afterward.
-
-Additional fields for `event_type: "reward_claimed"`:
-
-| Field | Type | Description |
-|---|---|---|
-| `reward_label` | string | Performer-defined label for the reward (e.g. "Free Song Request") |
-| `reward_icon` | string \| null | Curated icon code (e.g. `music_note`, `star`, `album`); null if unset |
+| `reward_label` | string | Performer-defined label (e.g. "Free Song Request") |
+| `reward_icon` | string \| null | Curated icon code (e.g. `music_note`, `star`, `album`) |
 | `reward_type` | string | One of `free_request`, `free_cd`, `custom` |
-| `threshold_cents` | integer | Cumulative-tip threshold (in cents) at which the reward unlocks |
-| `audience_name` | string \| null | The audience member's display name, if known |
-| `tip_amount_cents` | integer | Always `0` for reward claims |
+| `threshold_cents` | integer | Cumulative-tip threshold in cents at which the reward unlocks |
+| `audience_name` | string \| null | Audience member's display name, if known |
+
+**`reward_claimed` vs `reward_delivered`**: `reward_claimed` fires when the audience crosses the threshold (money side). `reward_delivered` fires when the performer taps "Mark as delivered" in the app (physical delivery confirmation). Both events are matched to the session by project + time window, not by `performance_session_id`, so they appear on any session whose time window contains the claim.
+
+**`tip_bucket_total_id`**: Use this FK — not `id` (which is `performance_events.id`) — when calling `/tip-bucket-totals/{id}` endpoints. Null only on legacy rows that pre-date the link.
+
+**`request_updated.previous_tip_amount_cents`**: The tip amount before the edit. Always present; 0 if the original was also 0.
+
+**`link_clicked.link_type`**: One of `venmo`, `paypal`, `cashapp`, `performer_track` (or any custom link type the performer has configured).
+
+**Ordering**: all events within `data.events` are sorted most-recent first by `occurred_at`.
+
+**Raw `request` performance_events**: Not surfaced. When an audience member places a request, a `song_queued` event appears immediately. When the performer plays the song, a `song` (or `request` if matched) event appears. This avoids duplicate entries.
 
 ### GET `/api/v1/me/projects/{project}/performances/{performanceSession}/events`
 
