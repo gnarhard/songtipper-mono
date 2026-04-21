@@ -203,6 +203,7 @@ Each event object has a discriminator field `event_type`. Shared fields present 
 | `reward_delivered` | Performer confirmed a reward was physically delivered | `reward_label`, `reward_icon`, `reward_type`, `threshold_cents`, `audience_name` |
 | `link_clicked` | Audience member clicked a link on the project page | `link_type` |
 | `audience_page_viewed` | Audience member opened the project page | — |
+| `new_audience_member_viewed` | First time a given visitor opened the project page during an active session (idempotent per visitor token per session) | `visitor_token` |
 
 **Field details for song / request events**
 
