@@ -29,7 +29,7 @@
 Run these from the relevant repo root.
 These are the minimum baseline commands. Before GitHub submission, every test suite for each changed repo must be green.
 
-### Backend (`songtipper/web`)
+### Backend (`tipelodeon/web`)
 
 ```bash
 php -v
@@ -40,7 +40,7 @@ php artisan test
 ./vendor/bin/pint
 ```
 
-### Mobile (`songtipper/mobile_app`)
+### Mobile (`tipelodeon/mobile_app`)
 
 Read `mobile_app/AGENTS.md` first. If it is missing in the current mobile
 worktree, read `mobile_app/.agent-rules/flutter.md`,

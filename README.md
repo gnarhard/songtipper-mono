@@ -1,6 +1,6 @@
-# Song Tipper Monorepo
+# Tipelodeon Monorepo
 
-Song Tipper is a performer-focused app to manage songs, setlists, charts and live audience requests.
+Tipelodeon is a performer-focused app to manage songs, setlists, charts and live audience requests.
 
 - Purpose: Manage repertoire (songs, metadata, tags), create setlists, store charts (PDFs/images), and handle audience song requests / live queue syncing.
 - Architecture: Backend API + web UI in backend/, performer mobile app in frontend/ (Flutter), and shared API/contracts in shared/. - Key features: Repertoire & metadata, setlist building, chart/file uploads, audience request queue, project-scoped auth, offline-first mobile behavior.
@@ -8,17 +8,17 @@ Song Tipper is a performer-focused app to manage songs, setlists, charts and liv
 - Auth & scope: Token-based authentication with authorization scoped to a Project/band.
 - Scale & imports: Designed to support bulk imports (see database/seeders), and integrates with external metadata/enrichment as needed.
 
-Song Tipper is split into multiple repositories:
+Tipelodeon is split into multiple repositories:
 
-- `songtipper/` (this repo): shared files, tooling, and top-level coordination.
-- `songtipper/web/`: Laravel API + marketing site.
-- `songtipper/mobile_app/`: Flutter mobile app.
+- `tipelodeon/` (this repo): shared files, tooling, and top-level coordination.
+- `tipelodeon/web/`: Laravel API + marketing site.
+- `tipelodeon/mobile_app/`: Flutter mobile app.
 
 `web/` and `mobile_app/` are intentionally independent Git repositories and are ignored by this root repo.
 
 ## Repository remotes
 
-- Monorepo: `git@github.com:gnarhard/songtipper.git`
+- Monorepo: `git@github.com:gnarhard/tipelodeon-mono.git`
 - Web: `git@github.com:gnarhard/songtipper_web.git`
 - Mobile App: `git@github.com:gnarhard/songtipper_mobile_app.git`
 
@@ -39,8 +39,8 @@ Song Tipper is split into multiple repositories:
 5. Install and configure game dependencies.
 
 ```bash
-git clone git@github.com:gnarhard/songtipper-mono.git
-cd songtipper-mono
+git clone git@github.com:gnarhard/tipelodeon-mono.git
+cd tipelodeon-mono
 
 git clone git@github.com:gnarhard/songtipper_web.git web
 git clone git@github.com:gnarhard/songtipper_mobile_app.git mobile_app
@@ -112,7 +112,7 @@ Use the following command to add admin privileges to an account:
 Stripe is used in two ways:
 
 1. Standard Stripe subscription products for Pro and Veteran plans. 30 days free creates a "payment intent."
-2. Connect Express. Musicians sign up for a Connect Express account to take tips from audience members. Song Tipper is setup as a platform, not a marketplace, meaning money will not flow through Song Tipper before it reaches the musician's account. Song Tipper takes no fees nor charges any usage fees.
+2. Connect Express. Musicians sign up for a Connect Express account to take tips from audience members. Tipelodeon is setup as a platform, not a marketplace, meaning money will not flow through Tipelodeon before it reaches the musician's account. Tipelodeon takes no fees nor charges any usage fees.
 
 If you see "Unable to initialize payment right now. Please try again." This means the user who signed up for their account in Stripe Connect Express signed up in the sandbox instead of the live account (or vice versa).
 
@@ -122,7 +122,7 @@ Stripe Connect platform has a payment method and the Stripe account also has dif
 
 First run: `stripe login`
 
-Then, run this: `stripe listen --forward-to https://songtipper.test/stripe/webhook`
+Then, run this: `stripe listen --forward-to https://tipelodeon.test/stripe/webhook`
 
 ### Connect Express Relink
 
@@ -142,12 +142,12 @@ A BillingOffer is an invitation to the platform.
 
 ### Why Venmo/PayPal are not used for tips
 
-PayPal and Venmo cannot be used for performer tips because Song Tipper's architecture requires that audience money bypass the platform entirely and flow directly to performers. This direct payment flow is critical for:
+PayPal and Venmo cannot be used for performer tips because Tipelodeon's architecture requires that audience money bypass the platform entirely and flow directly to performers. This direct payment flow is critical for:
 
 - **Performer trust**: Ensures musicians see immediate, direct payment to their accounts without intermediary processing
 - **Legal risk mitigation**: Direct performer payments significantly reduce liability exposure for the company
 
-PayPal and Venmo explicitly prohibit direct transfers between accounts because that's their core function—they prevent exactly the flow Song Tipper requires. While an alternative architecture where money flows through Song Tipper first (with performers requesting payouts) would technically be possible with these services, it doesn't align with the platform's trust and legal strategy.
+PayPal and Venmo explicitly prohibit direct transfers between accounts because that's their core function—they prevent exactly the flow Tipelodeon requires. While an alternative architecture where money flows through Tipelodeon first (with performers requesting payouts) would technically be possible with these services, it doesn't align with the platform's trust and legal strategy.
 
 ## Song Data Integrity
 

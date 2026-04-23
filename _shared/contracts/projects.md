@@ -17,14 +17,14 @@
 - `DELETE /{projectId}` - owner-only delete
 - `POST /{projectId}/performer-image` - upload performer profile image
 - `GET /{projectId}/members` - list owner and invited members
-- `POST /{projectId}/members` - owner-only invite of an existing SongTipper user
+- `POST /{projectId}/members` - owner-only invite of an existing Tipelodeon user
 - `DELETE /{projectId}/members/{membershipId}` - owner-only removal of a project member
 
 ---
 
 ## Project members
 
-- Owners can invite another existing SongTipper user by email.
+- Owners can invite another existing Tipelodeon user by email.
 - Invite payload: `{ "email": "member@example.com" }`
 - Invites always create or promote the collaborator to the `member` role.
 - Re-inviting an existing `member` returns the existing membership instead of
