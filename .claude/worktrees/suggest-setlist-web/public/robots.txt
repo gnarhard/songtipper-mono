@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /blog
+
+Sitemap: https://songtipper.com/sitemap.xml

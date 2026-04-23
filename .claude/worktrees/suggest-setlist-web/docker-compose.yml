@@ -1,0 +1,188 @@
+# Song Tipper - Local Development with Docker
+# Usage: docker compose up -d
+# Access: https://songtipper.test (via Valet proxy)
+
+services:
+  # ---- Web (PHP-FPM + nginx) ----
+  web:
+    build:
+      context: .
+      target: web
+    ports:
+      - "8080:80"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=https://songtipper.test
+      - TRUSTED_PROXIES=*
+      - DB_HOST=mysql
+      - DB_DATABASE=songtipper
+      - DB_USERNAME=songtipper
+      - DB_PASSWORD=secret
+      - REDIS_HOST=redis
+      - REDIS_CLIENT=predis
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=database
+      - CHART_FILESYSTEM_DISK=local
+    env_file:
+      - .env.docker
+    volumes:
+      - storage:/var/www/html/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # ---- Queue Workers ----
+  worker-default:
+    build:
+      context: .
+      target: worker
+    environment:
+      - WORKER_QUEUE=default
+      - WORKER_TIMEOUT=120
+      - WORKER_TRIES=3
+      - APP_ENV=local
+      - DB_HOST=mysql
+      - DB_DATABASE=songtipper
+      - DB_USERNAME=songtipper
+      - DB_PASSWORD=secret
+      - REDIS_HOST=redis
+      - REDIS_CLIENT=predis
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
+      - CHART_FILESYSTEM_DISK=local
+    env_file:
+      - .env.docker
+    volumes:
+      - storage:/var/www/html/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker-imports:
+    build:
+      context: .
+      target: worker
+    environment:
+      - WORKER_QUEUE=imports
+      - WORKER_TIMEOUT=300
+      - WORKER_TRIES=1
+      - APP_ENV=local
+      - DB_HOST=mysql
+      - DB_DATABASE=songtipper
+      - DB_USERNAME=songtipper
+      - DB_PASSWORD=secret
+      - REDIS_HOST=redis
+      - REDIS_CLIENT=predis
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
+      - CHART_FILESYSTEM_DISK=local
+    env_file:
+      - .env.docker
+    volumes:
+      - storage:/var/www/html/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker-renders:
+    build:
+      context: .
+      target: worker
+    environment:
+      - WORKER_QUEUE=renders
+      - WORKER_TIMEOUT=1200
+      - WORKER_TRIES=1
+      - WORKER_SLEEP=1
+      - APP_ENV=local
+      - DB_HOST=mysql
+      - DB_DATABASE=songtipper
+      - DB_USERNAME=songtipper
+      - DB_PASSWORD=secret
+      - REDIS_HOST=redis
+      - REDIS_CLIENT=predis
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
+      - CHART_FILESYSTEM_DISK=local
+    env_file:
+      - .env.docker
+    volumes:
+      - storage:/var/www/html/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ---- Scheduler ----
+  scheduler:
+    build:
+      context: .
+      target: scheduler
+    environment:
+      - APP_ENV=local
+      - DB_HOST=mysql
+      - DB_DATABASE=songtipper
+      - DB_USERNAME=songtipper
+      - DB_PASSWORD=secret
+      - REDIS_HOST=redis
+      - REDIS_CLIENT=predis
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
+    env_file:
+      - .env.docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ---- MySQL ----
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: songtipper
+      MYSQL_USER: songtipper
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ---- Redis ----
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  mysql_data:
+  redis_data:
+  storage:

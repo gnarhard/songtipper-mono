@@ -1,0 +1,202 @@
+// GENERATED FILE - DO NOT EDIT BY HAND.
+// Source: _shared/design/theme_tokens.json
+
+export const tailwindPalettes = {
+    "apricot": {
+        "normal": "#ffb375",
+        "accent": "#ffcba0"
+    },
+    "light": {
+        "normal": "#dcecf4",
+        "accent": "#cddce3"
+    },
+    "dark": {
+        "normal": "#302938",
+        "accent": "#2d2633",
+        "separator": "#4e435b"
+    },
+    "success": {
+        "normal": "#6f9072",
+        "accent": "#d9e6da"
+    },
+    "danger": {
+        "normal": "#c86455",
+        "accent": "#f4d4ce"
+    },
+    "info": {
+        "normal": "#5f7fa2",
+        "accent": "#d7e3ee"
+    }
+};
+
+export const webThemeTokens = {
+    "light": {
+        "canvas": "#dcecf4",
+        "surface": "#dcecf4",
+        "surfaceStrong": "#cddce3",
+        "heroTop": "#ffcba0",
+        "heroBottom": "#cddce3",
+        "text": "#302938",
+        "textMuted": "#2d2633",
+        "line": "#cddce3",
+        "lineStrong": "#4e435b",
+        "apricot": "#ffb375",
+        "apricotEmphasis": "#ffcba0",
+        "accent": "#2d2633",
+        "accentSoft": "#cddce3",
+        "waveBandPrimary": "rgba(48, 41, 56, 0.07)",
+        "waveBandSecondary": "rgba(48, 41, 56, 0.11)",
+        "primaryInk": "#4e435b",
+        "primaryContainer": "#ffcba0",
+        "onPrimaryContainer": "#4e435b",
+        "secondaryContainer": "#cddce3",
+        "onSecondaryContainer": "#302938",
+        "successContainer": "#d9e6da",
+        "onSuccessContainer": "#302938",
+        "errorContainer": "#f4d4ce",
+        "onErrorContainer": "#302938"
+    },
+    "dark": {
+        "canvas": "#302938",
+        "surface": "#2d2633",
+        "surfaceStrong": "#4e435b",
+        "heroTop": "#2d2633",
+        "heroBottom": "#302938",
+        "text": "#dcecf4",
+        "textMuted": "#cddce3",
+        "line": "#4e435b",
+        "lineStrong": "#cddce3",
+        "apricot": "#ffb375",
+        "apricotEmphasis": "#ffcba0",
+        "accent": "#dcecf4",
+        "accentSoft": "#2d2633",
+        "waveBandPrimary": "rgba(220, 236, 244, 0.08)",
+        "waveBandSecondary": "rgba(220, 236, 244, 0.12)",
+        "primaryInk": "#4e435b",
+        "primaryContainer": "#ffcba0",
+        "onPrimaryContainer": "#4e435b",
+        "secondaryContainer": "#2d2633",
+        "onSecondaryContainer": "#cddce3",
+        "successContainer": "#d9e6da",
+        "onSuccessContainer": "#302938",
+        "errorContainer": "#f4d4ce",
+        "onErrorContainer": "#302938"
+    }
+};
+
+export const mobileThemeTokens = {
+    "light": {
+        "primary": "#ffb375",
+        "onPrimary": "#4e435b",
+        "primaryContainer": "#ffcba0",
+        "onPrimaryContainer": "#4e435b",
+        "secondary": "#302938",
+        "onSecondary": "#cddce3",
+        "secondaryContainer": "#cddce3",
+        "onSecondaryContainer": "#302938",
+        "tertiary": "#302938",
+        "onTertiary": "#cddce3",
+        "tertiaryContainer": "#cddce3",
+        "onTertiaryContainer": "#302938",
+        "error": "#c86455",
+        "onError": "#302938",
+        "errorContainer": "#f4d4ce",
+        "onErrorContainer": "#302938",
+        "surface": "#dcecf4",
+        "onSurface": "#302938",
+        "onSurfaceVariant": "#2d2633",
+        "outline": "#4e435b",
+        "outlineVariant": "#cddce3",
+        "inverseSurface": "#302938",
+        "onInverseSurface": "#cddce3",
+        "inversePrimary": "#ffcba0",
+        "surfaceTint": "#ffcba0",
+        "heading": "#302938",
+        "headingStrong": "#302938"
+    },
+    "dark": {
+        "primary": "#ffb375",
+        "onPrimary": "#4e435b",
+        "primaryContainer": "#ffcba0",
+        "onPrimaryContainer": "#4e435b",
+        "secondary": "#dcecf4",
+        "onSecondary": "#302938",
+        "secondaryContainer": "#2d2633",
+        "onSecondaryContainer": "#cddce3",
+        "tertiary": "#dcecf4",
+        "onTertiary": "#302938",
+        "tertiaryContainer": "#2d2633",
+        "onTertiaryContainer": "#cddce3",
+        "error": "#c86455",
+        "onError": "#302938",
+        "errorContainer": "#f4d4ce",
+        "onErrorContainer": "#302938",
+        "surface": "#302938",
+        "onSurface": "#dcecf4",
+        "onSurfaceVariant": "#cddce3",
+        "outline": "#cddce3",
+        "outlineVariant": "#4e435b",
+        "inverseSurface": "#cddce3",
+        "onInverseSurface": "#302938",
+        "inversePrimary": "#ffcba0",
+        "surfaceTint": "#ffcba0",
+        "heading": "#dcecf4",
+        "headingStrong": "#dcecf4"
+    },
+    "wave": {
+        "textureAsset": "assets/images/newspaper_texture.webp",
+        "textureOpacityLight": 0.08,
+        "textureOpacityDark": 0.12,
+        "textureTintLight": "#302938",
+        "textureTintDark": "#cddce3",
+        "backgroundTopLight": "#cddce3",
+        "backgroundBottomLight": "#dcecf4",
+        "backgroundTopDark": "#2d2633",
+        "backgroundBottomDark": "#302938",
+        "ambientLight": "#cddce3",
+        "ambientDark": "#302938",
+        "ribbonALightStart": "#B4C4CB",
+        "ribbonALightEnd": "#dcecf4",
+        "ribbonBLightStart": "#e9f1f6",
+        "ribbonBLightEnd": "#bdd0d9",
+        "ribbonCLightStart": "#dcecf4",
+        "ribbonCLightEnd": "#C1D6DF",
+        "ribbonADarkStart": "#49445b",
+        "ribbonADarkEnd": "#302938",
+        "ribbonBDarkStart": "#5d5a74",
+        "ribbonBDarkEnd": "#403d4f",
+        "ribbonCDarkStart": "#433B4A",
+        "ribbonCDarkEnd": "#362E3D"
+    }
+};
+
+export const filledForegroundPairs = {
+    "web": {
+        "light": {
+            "primaryContainer": "onPrimaryContainer",
+            "secondaryContainer": "onSecondaryContainer",
+            "successContainer": "onSuccessContainer",
+            "errorContainer": "onErrorContainer"
+        },
+        "dark": {
+            "primaryContainer": "onPrimaryContainer",
+            "secondaryContainer": "onSecondaryContainer",
+            "successContainer": "onSuccessContainer",
+            "errorContainer": "onErrorContainer"
+        }
+    },
+    "mobile": {
+        "light": {
+            "primaryContainer": "onPrimaryContainer",
+            "secondaryContainer": "onSecondaryContainer",
+            "tertiaryContainer": "onTertiaryContainer",
+            "errorContainer": "onErrorContainer"
+        },
+        "dark": {
+            "primaryContainer": "onPrimaryContainer",
+            "secondaryContainer": "onSecondaryContainer",
+            "tertiaryContainer": "onTertiaryContainer",
+            "errorContainer": "onErrorContainer"
+        }
+    }
+};
