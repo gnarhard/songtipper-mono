@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-display;
+    }
+}
+
+@media not (prefers-color-scheme: dark) {
+    [class*="bg-brand"][class*="text-brand"],
+    [class*="bg-brand"] [class*="text-brand"],
+    [class*="hover:bg-brand"][class*="text-brand"]:hover,
+    [class*="hover:bg-brand"]:hover [class*="text-brand"],
+    [class*="focus:bg-brand"][class*="text-brand"]:focus,
+    [class*="focus:bg-brand"]:focus [class*="text-brand"] {
+        @apply text-accent;
+    }
+}

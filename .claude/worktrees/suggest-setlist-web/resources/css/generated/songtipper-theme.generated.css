@@ -1,0 +1,59 @@
+/* GENERATED FILE - DO NOT EDIT BY HAND. */
+/* Source: _shared/design/theme_tokens.json */
+
+:root {
+  --st-canvas: #dcecf4;
+  --st-surface: #dcecf4;
+  --st-surface-strong: #cddce3;
+  --st-hero-top: #ffcba0;
+  --st-hero-bottom: #cddce3;
+  --st-text: #302938;
+  --st-text-muted: #2d2633;
+  --st-line: #cddce3;
+  --st-line-strong: #4e435b;
+  --st-apricot: #ffb375;
+  --st-apricot-emphasis: #ffcba0;
+  --st-accent: #2d2633;
+  --st-accent-soft: #cddce3;
+  --st-wave-band-primary: rgba(48, 41, 56, 0.07);
+  --st-wave-band-secondary: rgba(48, 41, 56, 0.11);
+  --st-primary-ink: #4e435b;
+  --st-primary-container: #ffcba0;
+  --st-on-primary-container: #4e435b;
+  --st-secondary-container: #cddce3;
+  --st-on-secondary-container: #302938;
+  --st-success-container: #d9e6da;
+  --st-on-success-container: #302938;
+  --st-error-container: #f4d4ce;
+  --st-on-error-container: #302938;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+  --st-canvas: #302938;
+  --st-surface: #2d2633;
+  --st-surface-strong: #4e435b;
+  --st-hero-top: #2d2633;
+  --st-hero-bottom: #302938;
+  --st-text: #dcecf4;
+  --st-text-muted: #cddce3;
+  --st-line: #4e435b;
+  --st-line-strong: #cddce3;
+  --st-apricot: #ffb375;
+  --st-apricot-emphasis: #ffcba0;
+  --st-accent: #dcecf4;
+  --st-accent-soft: #2d2633;
+  --st-wave-band-primary: rgba(220, 236, 244, 0.08);
+  --st-wave-band-secondary: rgba(220, 236, 244, 0.12);
+  --st-primary-ink: #4e435b;
+  --st-primary-container: #ffcba0;
+  --st-on-primary-container: #4e435b;
+  --st-secondary-container: #2d2633;
+  --st-on-secondary-container: #cddce3;
+  --st-success-container: #d9e6da;
+  --st-on-success-container: #302938;
+  --st-error-container: #f4d4ce;
+  --st-on-error-container: #302938;
+}
+}
+

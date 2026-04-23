@@ -1,6 +1,6 @@
 # API Contracts Directory
 
-This directory contains the detailed API contract specifications for Song Tipper, organized by resource/domain.
+This directory contains the detailed API contract specifications for Tipelodeon, organized by resource/domain.
 
 ## Overview
 

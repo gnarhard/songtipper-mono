@@ -17,7 +17,7 @@ There is no other place where `embed=1` is honoured. Do not invent new embed ent
 When `$embed === true`, the rendered markup MUST NOT contain any of the following:
 
 1. **Server-action buttons** — anything with `wire:click`, `wire:submit`, `<form method="post|put|patch|delete">`, or a submit button. The audience embed is read-only browsing; tipping, requesting, surprising, and clearing filters all belong to the full project page.
-2. **Same-window navigation links** — any `<a href="...">` that would navigate the iframe away from the embed view (no `target="_blank"`). This includes links to the request flow, login, dashboard, website page, or any other Song Tipper route. A navigation click inside the iframe replaces the host page's widget content with an unrelated page, which is broken.
+2. **Same-window navigation links** — any `<a href="...">` that would navigate the iframe away from the embed view (no `target="_blank"`). This includes links to the request flow, login, dashboard, website page, or any other Tipelodeon route. A navigation click inside the iframe replaces the host page's widget content with an unrelated page, which is broken.
 3. **Auth-gated UI** — login/logout, account, dashboard, or admin affordances. The embed renders for anonymous audience visitors and must never expose performer-only controls.
 4. **Outbound POST forms** — even GET forms that would change the visible state outside Livewire are forbidden; use `wire:model.live` on inputs instead.
 
@@ -28,7 +28,7 @@ These remain useful in an embed and are explicitly permitted:
 - Client-side toggles implemented with Alpine `x-data` / `@click` (e.g. the "Filter Songs" disclosure button) — they only mutate local UI state.
 - Filter and sort inputs bound with `wire:model.live` — the Livewire round-trip stays inside the iframe and never navigates.
 - Livewire-paginated lists rendered via `WithPagination` (`{{ $paginator->links() }}`) — page links are intercepted by Livewire and handled as AJAX, not as full-page navigations.
-- A single attribution link to Song Tipper, but **only** with `target="_blank" rel="noopener noreferrer"` so it opens a new tab and leaves the embed intact.
+- A single attribution link to Tipelodeon, but **only** with `target="_blank" rel="noopener noreferrer"` so it opens a new tab and leaves the embed intact.
 
 ## How to gate elements correctly
 

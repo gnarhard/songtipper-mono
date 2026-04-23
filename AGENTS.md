@@ -1,4 +1,4 @@
-# AGENTS.md — SongTipper
+# AGENTS.md — Tipelodeon
 
 This file is intentionally short. Load only the rule files relevant to the task.
 

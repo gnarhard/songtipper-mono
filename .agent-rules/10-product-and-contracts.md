@@ -7,7 +7,7 @@
 
 ## Product scope
 
-SongTipper helps performers manage:
+Tipelodeon helps performers manage:
 
 - Repertoire with keys, capo, tuning, energy, mood, era, and genre metadata
 - To-learn songs with YouTube and Ultimate Guitar links

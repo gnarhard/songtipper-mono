@@ -73,7 +73,7 @@ Sharers:
 - Allowed for project owners and project members.
 - Returns one stable share token per source setlist.
 - Response includes:
-  - `share_url` for sending to another Song Tipper user
+  - `share_url` for sending to another Tipelodeon user
   - `deep_link_url` for the app redirect target
 
 Recipients:

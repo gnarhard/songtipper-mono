@@ -1,0 +1,4 @@
+*.sqlite*
+seeders/data/test_account_charts/free/*.pdf
+seeders/data/test_account_charts/basic/*.pdf
+seeders/data/test_account_charts/pro/*.pdf

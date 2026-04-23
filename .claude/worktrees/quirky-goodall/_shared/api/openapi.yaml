@@ -1,0 +1,3045 @@
+openapi: 3.0.3
+info:
+  title: Song Tipper API v1.3
+  version: 1.3.0
+  description: |
+    Contract-first API for Song Tipper performer and audience flows.
+
+    Canonical response envelope:
+    - success: {"data": ..., "meta": ...}
+    - validation/error: Laravel standard {"message": "...", "errors": {...}}
+
+    Canonical v1.2 rules:
+    - Retryable writes support `Idempotency-Key`.
+    - `requests.song_id` is always persisted (tip-only/original map to placeholder songs).
+    - Chart viewport preferences are per `(user, chart, page)`.
+servers:
+  - url: /api/v1
+
+tags:
+  - name: Auth
+  - name: Projects
+  - name: Queue
+  - name: Payouts
+  - name: Repertoire
+  - name: Setlists
+  - name: Performances
+  - name: Charts
+  - name: App
+  - name: Audience
+  - name: Learning
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Issue a Sanctum token for a performer
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthLoginRequest'
+      responses:
+        '200':
+          description: Token issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthLoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMessageResponse'
+        '403':
+          description: Email verification required before token login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMessageResponse'
+        '422':
+          description: Validation failed
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke the current Sanctum token
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Token revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMessageResponse'
+        '401':
+          description: Unauthenticated
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request a password reset email
+      description: |
+        Always returns a generic success message so clients do not learn whether
+        an email address exists.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthForgotPasswordRequest'
+      responses:
+        '200':
+          description: Reset request accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMessageResponse'
+        '422':
+          description: Validation failed
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset a password using an emailed token
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMessageResponse'
+        '422':
+          description: Validation failed or token is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMessageResponse'
+
+  /auth/password:
+    put:
+      tags: [Auth]
+      summary: Update the authenticated user's password
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthPasswordUpdateRequest'
+      responses:
+        '200':
+          description: Password updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMessageResponse'
+        '401':
+          description: Unauthenticated
+        '422':
+          description: Validation failed
+
+  /me/profile:
+    get:
+      tags: [Auth]
+      summary: Get the authenticated user's profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserResponse'
+        '401':
+          description: Unauthenticated
+    patch:
+      tags: [Auth]
+      summary: Update the authenticated user's profile
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthProfileUpdateRequest'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserMessageResponse'
+        '401':
+          description: Unauthenticated
+        '422':
+          description: Validation failed
+
+  /me/usage:
+    get:
+      tags: [Projects]
+      summary: Get account usage, fair-use state, and plan limits
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Current usage summary for the authenticated owner account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountUsageResponse'
+        '401':
+          description: Unauthenticated
+
+  /me/payout-account:
+    get:
+      tags: [Payouts]
+      summary: Get payout account status for authenticated user
+      description: |
+        Returns persisted payout account status for the authenticated user.
+        Pass `refresh_from_stripe=true` to force a live refresh from Stripe
+        before reading status.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: refresh_from_stripe
+          required: false
+          schema: { type: boolean, default: false }
+          description: Refresh payout account state from Stripe before responding.
+      responses:
+        '200':
+          description: Current payout account status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayoutAccountResponse'
+
+  /me/payout-account/onboarding-link:
+    post:
+      tags: [Payouts]
+      summary: Create or refresh a Stripe Connect onboarding link
+      description: |
+        Creates the Stripe Express account if it does not exist and returns a
+        single-use onboarding link (`type=account_onboarding`).
+        Response `link_type` is always `onboarding`.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Onboarding link generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayoutAccountLinkResponse'
+
+  /me/payout-account/dashboard-link:
+    post:
+      tags: [Payouts]
+      summary: Create a Stripe Express URL for dashboard or onboarding
+      description: |
+        Ensures a Stripe Express account exists for the authenticated user,
+        refreshes account status, and returns:
+        - `link_type=dashboard` with a dashboard login URL when enabled.
+        - `link_type=onboarding` with an onboarding URL otherwise.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Express URL generated (dashboard or onboarding)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayoutAccountLinkResponse'
+
+  /me/payouts:
+    get:
+      tags: [Payouts]
+      summary: List Stripe payout history for the authenticated owner account
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, in_transit, paid, failed, canceled]
+      responses:
+        '200':
+          description: Payout list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayoutHistoryResponse'
+        '403':
+          description: Forbidden (payout history requires Pro)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureRequiresProError'
+        '422':
+          description: Invalid status/limit query
+        '502':
+          description: Stripe payout history unavailable
+
+  /me/projects:
+    get:
+      tags: [Projects]
+      summary: List projects user can access
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Project list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectCollectionResponse'
+    post:
+      tags: [Projects]
+      summary: Create a new project
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, minLength: 1, maxLength: 255 }
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectMessageResponse'
+
+  /me/projects/{projectId}:
+    put:
+      tags: [Projects]
+      summary: Update project settings
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateRequest'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectMessageResponse'
+        '422':
+          description: Validation failed or payout setup incomplete
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/FeatureRequiresProError'
+                  - $ref: '#/components/schemas/PayoutSetupIncompleteError'
+                  - type: object
+                    properties:
+                      message: { type: string }
+                      errors:
+                        type: object
+                        additionalProperties:
+                          type: array
+                          items: { type: string }
+    patch:
+      tags: [Projects]
+      summary: Partially update project settings
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateRequest'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectMessageResponse'
+        '422':
+          description: Validation failed or payout setup incomplete
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/FeatureRequiresProError'
+                  - $ref: '#/components/schemas/PayoutSetupIncompleteError'
+                  - type: object
+                    properties:
+                      message: { type: string }
+                      errors:
+                        type: object
+                        additionalProperties:
+                          type: array
+                          items: { type: string }
+    delete:
+      tags: [Projects]
+      summary: Delete an owned project
+      description: Deletes the project and associated project-scoped data.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Project deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+        '403':
+          description: Forbidden (user is not the project owner)
+
+  /me/projects/{projectId}/members:
+    get:
+      tags: [Projects]
+      summary: List the owner and invited members for a project
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Owner and invited members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectMembersResponse'
+        '404':
+          description: Not found (user does not have access to the project)
+    post:
+      tags: [Projects]
+      summary: Invite an existing Song Tipper user to a project as a member
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectMemberInviteRequest'
+      responses:
+        '200':
+          description: Existing membership returned or upgraded to `member`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectMemberMessageResponse'
+        '201':
+          description: Member invited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectMemberMessageResponse'
+        '403':
+          description: Forbidden (user is not project owner)
+        '422':
+          description: Validation failed
+
+  /me/projects/{projectId}/queue:
+    get:
+      tags: [Queue]
+      summary: Get the active request queue for a project
+      description: |
+        Returns the active request queue ordered by `tip_amount_cents DESC`,
+        then `created_at ASC`. Supports ETag caching for queue polling.
+        When `timezone` is supplied, `meta.daily_record_event` reports a new
+        project-scoped daily gross-tip record for the current local day.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/OptionalReportingTimezone'
+      responses:
+        '200':
+          description: Active queue response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueCollectionResponse'
+        '304':
+          description: Not modified when the queue payload and record event are unchanged
+        '403':
+          description: Forbidden (queue access requires Pro-owned project access)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureRequiresProError'
+        '404':
+          description: Not found (user does not have access to the project)
+    post:
+      tags: [Queue]
+      summary: Add a manual queue item
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualQueueItemRequest'
+      responses:
+        '201':
+          description: Queue item added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualQueueItemResponse'
+        '403':
+          description: Forbidden (queue access requires Pro-owned project access)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureRequiresProError'
+        '404':
+          description: Not found (user does not have access to the project)
+        '422':
+          description: Validation failed or originals are disabled
+
+  /me/projects/{projectId}/requests/history:
+    get:
+      tags: [Queue]
+      summary: Get the non-active request history for a project
+      description: |
+        Returns the project-scoped non-active request history used by the
+        mobile archive screen. The payload shape remains the same played-request
+        resource; there is no separate archived status value.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+      responses:
+        '200':
+          description: Paginated request history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestHistoryCollectionResponse'
+        '403':
+          description: Forbidden (history access requires Pro-owned project access)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureRequiresProError'
+        '404':
+          description: Not found (user does not have access to the project)
+
+  /me/projects/{projectId}/wallet:
+    get:
+      tags: [Payouts]
+      summary: Get wallet summary for an owner project
+      description: |
+        Returns account-level Stripe balance and project-level earnings summary.
+        Wallet scope is account-level because each performer has one connected
+        Stripe account across their projects.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Wallet summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectWalletResponse'
+        '403':
+          description: Forbidden (wallet reporting requires Pro and owner access)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureRequiresProError'
+        '502':
+          description: Stripe wallet data unavailable
+
+  /me/projects/{projectId}/stats:
+    get:
+      tags: [Payouts]
+      summary: Get owner-only stats for a project timeline
+      description: |
+        Returns the project's owner-facing stats report for the supplied
+        timeline preset and IANA timezone. Request counts and money use
+        accepted request timestamps, while played counts use `played_at`.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/ReportingTimezone'
+        - $ref: '#/components/parameters/StatsTimelinePreset'
+        - $ref: '#/components/parameters/StatsStartDate'
+        - $ref: '#/components/parameters/StatsEndDate'
+      responses:
+        '200':
+          description: Timeline stats summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStatsResponse'
+        '403':
+          description: Forbidden (owner stats require Pro and owner access)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureRequiresProError'
+        '422':
+          description: Validation failed (invalid timezone, preset, or custom range)
+        '502':
+          description: Stripe settlement data unavailable
+
+  /me/projects/{projectId}/cash-tips:
+    get:
+      tags: [Payouts]
+      summary: List cash tips for a project
+      description: |
+        Returns cash tips recorded for the project, optionally filtered by
+        local date. Paginated using standard Laravel pagination.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - name: local_date
+          in: query
+          required: false
+          schema: { type: string, format: date, example: '2026-03-15' }
+          description: Filter to a single local date (YYYY-MM-DD)
+        - name: per_page
+          in: query
+          required: false
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer, default: 1 }
+      responses:
+        '200':
+          description: Paginated cash tips
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashTipCollectionResponse'
+    post:
+      tags: [Payouts]
+      summary: Record a cash tip
+      description: |
+        Record a cash tip received for a specific local date. Cash tips are
+        standalone monetary records not tied to song requests or the queue.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreCashTipRequest'
+      responses:
+        '201':
+          description: Cash tip recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashTipResponse'
+        '422':
+          description: Validation failed
+
+  /me/projects/{projectId}/cash-tips/{cashTipId}:
+    patch:
+      tags: [Payouts]
+      summary: Update a cash tip
+      description: |
+        Update a previously recorded cash tip. All mutable fields must be
+        provided (amount_cents, local_date, timezone, note).
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - name: cashTipId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreCashTipRequest'
+      responses:
+        '200':
+          description: Cash tip updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashTipResponse'
+        '404':
+          description: Project or cash tip not found
+        '422':
+          description: Validation failed
+    delete:
+      tags: [Payouts]
+      summary: Delete a cash tip
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - name: cashTipId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Cash tip deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Cash tip deleted. }
+
+  /me/projects/{projectId}/wallet/sessions:
+    get:
+      tags: [Payouts]
+      summary: Get project session earnings summary history
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Paginated session earnings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionWalletCollectionResponse'
+        '403':
+          description: Forbidden (wallet reporting requires Pro and owner access)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureRequiresProError'
+
+  /me/projects/{projectId}/repertoire:
+    get:
+      tags: [Repertoire]
+      summary: List repertoire songs
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - in: query
+          name: theme
+          schema:
+            $ref: '#/components/schemas/SongTheme'
+          description: Effective theme filter (project override then global song theme).
+      responses:
+        '200':
+          description: Repertoire list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRepertoireResponse'
+        '422':
+          description: Validation failed (invalid theme filter)
+    post:
+      tags: [Repertoire]
+      summary: Add repertoire song
+      description: |
+        Pro-owned projects are hard-capped at 100 repertoire songs.
+        Veteran-owned projects do not have a repertoire-song cap.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepertoireUpsertRequest'
+      responses:
+        '201':
+          description: Song added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SingleRepertoireResponse'
+        '422':
+          description: Validation failed or repertoire limit reached
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/RepertoireLimitError'
+                  - type: object
+                    properties:
+                      message: { type: string }
+                      errors:
+                        type: object
+                        additionalProperties:
+                          type: array
+                          items: { type: string }
+
+  /me/projects/{projectId}/repertoire/{projectSongId}:
+    put:
+      tags: [Repertoire]
+      summary: Update repertoire song
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/ProjectSongId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepertoireUpsertRequest'
+      responses:
+        '200':
+          description: Song updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SingleRepertoireResponse'
+    delete:
+      tags: [Repertoire]
+      summary: Delete repertoire song
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/ProjectSongId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Song deleted
+
+  /me/projects/{projectId}/repertoire/{projectSongId}/clone:
+    post:
+      tags: [Repertoire]
+      summary: Clone a repertoire song as a new alternate version
+      description: |
+        Creates a new `project_song` row for the same `song_id` and
+        `project_id` as the source, owned by the caller, with a distinct
+        `version_label`. Optionally clones charts (with their renders) and
+        the latest saved chart annotations onto the new version.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/ProjectSongId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version_label]
+              properties:
+                version_label:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  description: Label for the alternate version (e.g., "Acoustic", "Solo")
+                include_charts:
+                  type: boolean
+                  default: true
+                  description: Clone charts and their renders from the source version.
+                include_annotations:
+                  type: boolean
+                  default: true
+                  description: |
+                    Clone the latest saved chart annotations from the source
+                    version. Only honored when `include_charts=true`.
+      responses:
+        '201':
+          description: Alternate version created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  project_song:
+                    $ref: '#/components/schemas/RepertoireSong'
+                  copied_charts: { type: integer }
+                  copied_annotations: { type: integer }
+        '403':
+          description: Caller does not own the source project_song
+        '409':
+          description: Version label already exists for this song
+        '422':
+          description: Repertoire limit reached or validation failed
+
+  /me/projects/{projectId}/repertoire/bulk-import:
+    post:
+      tags: [Repertoire]
+      summary: Bulk-import repertoire from PDFs or CSV rows
+      description: |
+        Up to 20 chart PDFs or 20 metadata-only song rows per request.
+        Each PDF max 2MB.
+        Pro-owned projects stop importing once the project reaches 100 repertoire songs.
+        Large chart batches may defer AI enrichment for review while still accepting the upload.
+        When `files` is omitted, each `items[]` row must include `title` and `artist`.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              anyOf:
+                - required: [files]
+                - required: [items]
+              properties:
+                files:
+                  type: array
+                  maxItems: 20
+                  items:
+                    type: string
+                    format: binary
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      title: { type: string }
+                      artist: { type: string }
+                      theme:
+                        $ref: '#/components/schemas/SongTheme'
+      responses:
+        '200':
+          description: Import accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkImportResponse'
+
+  /me/projects/{projectId}/repertoire/copy-from:
+    post:
+      tags: [Repertoire]
+      summary: Copy selected repertoire songs from another project
+      description: |
+        Pro-owned projects are hard-capped at 100 repertoire songs.
+        If the copy would exceed the cap, the API returns `422` with `code=repertoire_limit_reached`.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_project_id, source_project_song_ids]
+              properties:
+                source_project_id: { type: integer }
+                source_project_song_ids:
+                  type: array
+                  minItems: 1
+                  items: { type: integer }
+                include_charts: { type: boolean, default: false }
+                include_annotations:
+                  type: boolean
+                  default: false
+                  description: |
+                    Clone saved chart annotations for each copied chart page.
+                    Only honored when `include_charts=true`.
+      responses:
+        '201':
+          description: Copy complete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data:
+                    type: object
+                    properties:
+                      copied_songs: { type: integer }
+                      copied_charts: { type: integer }
+                      copied_annotations: { type: integer }
+        '422':
+          description: Repertoire limit reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepertoireLimitError'
+
+  /me/projects/{projectId}/repertoire/import-from-image:
+    post:
+      tags: [Repertoire]
+      summary: Import songs from an image using AI vision
+      description: |
+        Accepts an image file (photo of a setlist, printed song list, handwritten
+        notes, or screenshot) and uses AI to extract song titles and artists.
+        Extracted songs are added to the project repertoire, skipping duplicates.
+        Pro-owned projects stop importing once the 100-song cap is reached.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Image file (JPEG, PNG, WebP, or HEIC; max 10 MB)
+      responses:
+        '200':
+          description: Extraction and import completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageImportResponse'
+        '422':
+          description: Validation failed (invalid image type or missing file)
+
+  /me/projects/{projectId}/repertoire/bulk-update:
+    post:
+      tags: [Repertoire]
+      summary: Bulk update boolean flags on repertoire songs
+      description: >-
+        Applies the same boolean field change (`is_public`, `learned`,
+        `mashup`, `instrumental`) to many repertoire songs in a single
+        transaction. IDs that do not belong to the current user/project
+        are silently skipped. Replaces the legacy `demote_to_learn` flag.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_song_ids, fields]
+              properties:
+                project_song_ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 500
+                  items: { type: integer }
+                fields:
+                  type: object
+                  description: At least one of the whitelisted keys is required.
+                  properties:
+                    is_public: { type: boolean }
+                    learned: { type: boolean }
+                    mashup: { type: boolean }
+                    instrumental: { type: boolean }
+      responses:
+        '200':
+          description: Rows updated; response includes `updated_count`.
+        '422':
+          description: Validation failed (missing fields, too many IDs, etc.)
+        '404':
+          description: Project not accessible by the current user.
+
+  /me/projects/{projectId}/setlists/{setlistId}/share-link:
+    post:
+      tags: [Setlists]
+      summary: Create or fetch a share link for a setlist
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/SetlistId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Existing share link returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetlistShareLinkResponse'
+        '201':
+          description: Share link created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetlistShareLinkResponse'
+        '403':
+          description: User has project access but cannot create share links
+
+  /me/shared-setlists/{shareToken}/accept:
+    post:
+      tags: [Setlists]
+      summary: Accept a shared setlist link and open the persisted copy
+      description: |
+        Copies the shared setlist into the owning project for the current user.
+        If any copied setlist songs reference repertoire entries that are
+        missing from that project, the backend creates those repertoire rows
+        automatically before saving the copied setlist.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ShareToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Existing copied setlist returned for this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedSetlistAcceptanceResponse'
+        '201':
+          description: Copied setlist created for this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedSetlistAcceptanceResponse'
+        '404':
+          description: Share token not found or recipient lacks project access
+
+  /me/projects/{projectId}/setlists/{setlistId}/sets:
+    post:
+      tags: [Setlists]
+      summary: Create a manual set in a setlist
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/SetlistId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetCreateRequest'
+      responses:
+        '201':
+          description: Set created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  set:
+                    $ref: '#/components/schemas/SetlistSetResource'
+
+  /me/projects/{projectId}/setlists/{setlistId}/sets/generate-ai:
+    post:
+      tags: [Setlists]
+      summary: Generate AI-powered sets in an existing setlist
+      description: |
+        Uses AI to select songs from the project repertoire based on
+        natural language prompts for each set. Creates multiple sets
+        in one call.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/SetlistId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiSetGenerateRequest'
+      responses:
+        '201':
+          description: AI sets generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiSetGenerateResponse'
+        '422':
+          description: Validation failed, empty repertoire, or AI generation failed
+
+  /me/projects/{projectId}/setlists/{setlistId}/sets/{setId}/songs/import-text:
+    post:
+      tags: [Setlists]
+      summary: Paste/import newline-separated titles into a set
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/SetlistId'
+        - $ref: '#/components/parameters/SetId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text:
+                  type: string
+                  description: Newline-separated `Title - Artist` rows.
+                create_missing_songs:
+                  type: boolean
+                  default: true
+      responses:
+        '201':
+          description: Songs imported, including duplicate matches with warnings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  setlist_songs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SetlistSongResource'
+                  meta:
+                    type: object
+                    properties:
+                      added_count: { type: integer }
+                      duplicate_count: { type: integer }
+                      duplicate_lines:
+                        type: array
+                        items: { type: string }
+                      unresolved_count: { type: integer }
+                      unresolved_lines:
+                        type: array
+                        items: { type: string }
+
+  /me/projects/{projectId}/performances/start:
+    post:
+      tags: [Performances]
+      summary: Start a performance session
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [setlist_id, mode]
+              properties:
+                setlist_id: { type: integer }
+                mode:
+                  type: string
+                  enum: [manual, smart]
+      responses:
+        '201':
+          description: Session started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceSessionResponse'
+        '409':
+          description: Active session already exists for this project
+
+  /me/projects/{projectId}/performances/stop:
+    post:
+      tags: [Performances]
+      summary: Stop current performance session
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Session stopped
+
+  /me/projects/{projectId}/performances/current:
+    get:
+      tags: [Performances]
+      summary: Get current performance session
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Active session or null
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceSessionResponse'
+
+  /me/projects/{projectId}/performances/current/complete:
+    post:
+      tags: [Performances]
+      summary: Mark song complete in current session
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_song_id, source]
+              properties:
+                project_song_id: { type: integer }
+                source:
+                  type: string
+                  enum: [setlist, repertoire]
+                setlist_song_id:
+                  type: integer
+                  nullable: true
+                  description: Required when `source=setlist` so duplicate setlist entries are completed in the correct performed order.
+      responses:
+        '200':
+          description: Session updated
+
+  /me/projects/{projectId}/performances/current/skip:
+    post:
+      tags: [Performances]
+      summary: Skip song in current session
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_song_id]
+              properties:
+                project_song_id: { type: integer }
+      responses:
+        '200':
+          description: Session updated
+
+  /me/projects/{projectId}/performances/current/random:
+    post:
+      tags: [Performances]
+      summary: Pick weighted random pending song in smart mode
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Recommendation
+
+  /me/charts:
+    get:
+      tags: [Charts]
+      summary: List charts for the authenticated user
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: project_id
+          schema: { type: integer }
+        - in: query
+          name: song_id
+          schema: { type: integer }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 200 }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Paginated chart list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartCollectionResponse'
+    post:
+      tags: [Charts]
+      summary: Upload or replace a chart PDF for a song
+      description: |
+        Upserts by `(owner_user_id, project_id, song_id)`.
+        Single chart uploads accept PDFs up to 2MB.
+        Upload endpoints are rate-limited to 5 requests per minute per authenticated user.
+        First upload returns `201`.
+        Re-uploading the same PDF returns `200` without changing the chart.
+        Re-uploading a different PDF returns `200`, keeps the existing chart ID,
+        replaces the source PDF in place, clears old render artifacts, and
+        triggers rendering again.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, song_id, project_id]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                song_id:
+                  type: integer
+                project_id:
+                  type: integer
+      responses:
+        '200':
+          description: Existing chart kept or replaced in place
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartResponse'
+        '201':
+          description: New chart created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartResponse'
+        '422':
+          description: Validation failed
+
+  /me/charts/generate-lyrics:
+    post:
+      tags: [Charts]
+      summary: Generate an AI lyric + chord sheet
+      description: |
+        Creates an AI-generated lyric and chord chart for the given song.
+        Returns 202 with a Chart resource. The chart starts with
+        import_status 'generating'. Client polls render-status until ready.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [song_id, project_id]
+              properties:
+                song_id:
+                  type: integer
+                project_id:
+                  type: integer
+      responses:
+        '202':
+          description: Generation started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartResponse'
+        '409':
+          description: Chart already exists for this song/project
+        '422':
+          description: Validation failed
+        '429':
+          description: AI quota exceeded
+
+  /me/charts/cache-bundle:
+    post:
+      tags: [Charts]
+      summary: Download a zip bundle of rendered chart page images
+      description: |
+        Streams a zip archive containing rendered chart page images
+        for the authenticated user across all projects. The zip includes
+        a `manifest.json` at the root with chart metadata and file paths.
+
+        Supports delta downloads: send `known_revisions` in the request
+        body to skip charts the client already has at the current revision.
+        The server only includes charts whose `updated_at` differs from
+        the provided revision.
+
+        Zip structure:
+        ```
+        manifest.json
+        {chartId}/{pageNumber}_{theme}.png
+        ```
+
+        Page numbers in the zip are 0-indexed (matching mobile convention).
+        Rate-limited to 2 requests per 5 minutes.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                known_revisions:
+                  type: object
+                  description: |
+                    Map of chartId (string) to updatedAt ISO 8601 timestamp.
+                    Charts matching the provided revision are excluded.
+                  additionalProperties:
+                    type: string
+      responses:
+        '200':
+          description: Streamed zip archive
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: No charts with renders available
+        '429':
+          description: Rate limited
+
+  /me/charts/{chartId}:
+    get:
+      tags: [Charts]
+      summary: Get a single chart
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChartId'
+      responses:
+        '200':
+          description: Chart resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartResponse'
+        '403':
+          description: Forbidden
+
+  /me/charts/{chartId}/pages/{page}/viewport:
+    get:
+      tags: [Charts]
+      summary: Read chart viewport preference for current user
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChartId'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Viewport preference
+    put:
+      tags: [Charts]
+      summary: Save chart viewport preference for current user
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChartId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [zoom_scale, offset_dx, offset_dy]
+              properties:
+                zoom_scale: { type: number }
+                offset_dx: { type: number }
+                offset_dy: { type: number }
+      responses:
+        '200':
+          description: Viewport saved
+
+  /me/charts/{chartId}/render-status:
+    get:
+      tags: [Charts]
+      summary: Get chart render readiness status
+      description: |
+        Single-call render verification for bulk upload clients.
+        `pending` means the chart exists but rendering is not complete.
+        Strict integrity checks apply: inconsistent render metadata returns
+        `failed` with `failure_reason=render_metadata_inconsistent`.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChartId'
+      responses:
+        '200':
+          description: Render readiness status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartRenderStatus'
+
+  /me/charts/{chartId}/pages/{page}/annotations/latest:
+    get:
+      tags: [Charts]
+      summary: Get saved chart annotation
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChartId'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Latest annotation payload or null
+
+  /me/charts/{chartId}/pages/{page}/annotations:
+    post:
+      tags: [Charts]
+      summary: Save chart annotation
+      description: Last-write-wins per chart/page/user. Each save replaces the prior saved annotation state.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChartId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [local_version_id, created_at, strokes]
+              properties:
+                local_version_id: { type: string }
+                created_at: { type: string, format: date-time }
+                strokes:
+                  type: array
+                  items: { type: object }
+      responses:
+        '201':
+          description: Annotation saved
+
+  /app/version-policy:
+    get:
+      tags: [App]
+      summary: Get the enabled app release policy for a platform
+      description: |
+        Public startup endpoint used by installed apps to decide whether to
+        show an update prompt.
+
+        Outdated comparison rule:
+        - compare `latest_version` numerically as `x.y.z`
+        - if the semantic version matches, compare `latest_build_number`
+
+        `store_url` is populated for mobile platforms (`ios`, `android`).
+        `archive_url` is populated for desktop platforms (`macos`, `windows`, `linux`).
+      parameters:
+        - in: query
+          name: platform
+          required: true
+          schema:
+            $ref: '#/components/schemas/AppPlatform'
+      responses:
+        '200':
+          description: Enabled app release policy for the requested platform
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AppVersionPolicy'
+        '404':
+          description: No enabled release policy exists for the requested platform
+
+  /public/projects/{projectSlug}/repertoire:
+    get:
+      tags: [Audience]
+      summary: List audience-visible repertoire
+      parameters:
+        - $ref: '#/components/parameters/ProjectSlug'
+        - in: query
+          name: theme
+          schema:
+            $ref: '#/components/schemas/SongTheme'
+      responses:
+        '200':
+          description: Public repertoire list
+        '422':
+          description: Validation failed (invalid theme filter)
+
+  /public/projects/{projectSlug}/requests:
+    post:
+      tags: [Audience]
+      summary: Create audience request
+      description: |
+        Tip-only and original requests are mapped to placeholder songs internally.
+        Persisted `requests.song_id` is never null.
+        Public requests are available only for Pro-owned projects whose
+        project entitlements expose `can_use_public_requests=true`.
+      parameters:
+        - $ref: '#/components/parameters/ProjectSlug'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                song_id: { type: integer, nullable: true }
+                tip_only: { type: boolean, default: false }
+                is_original: { type: boolean, default: false }
+                tip_amount_cents:
+                  type: integer
+                  minimum: 0
+                  description: Rounded up to the nearest whole-dollar amount before payment and persistence.
+                note: { type: string, maxLength: 500, nullable: true }
+      responses:
+        '200':
+          description: Request created (and payment intent payload when applicable)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicRequestCreateResponse'
+        '422':
+          description: Validation failed, request gating, or minimum tip violation
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: false
+      schema: { type: string, maxLength: 255 }
+      description: Required for client retries of write endpoints.
+    ProjectId:
+      in: path
+      name: projectId
+      required: true
+      schema: { type: integer }
+    ReportingTimezone:
+      in: query
+      name: timezone
+      required: true
+      schema:
+        type: string
+        example: America/Denver
+      description: IANA timezone used to compute the reporting window.
+    OptionalReportingTimezone:
+      in: query
+      name: timezone
+      required: false
+      schema:
+        type: string
+        example: America/Denver
+      description: IANA timezone used to compute queue record-event metadata.
+    StatsTimelinePreset:
+      in: query
+      name: preset
+      required: true
+      schema:
+        $ref: '#/components/schemas/StatsTimelinePreset'
+      description: >
+        Timeline preset. Use `custom` with `start_date` and `end_date`, or
+        `all_time` for the full project lifetime.
+    StatsStartDate:
+      in: query
+      name: start_date
+      required: false
+      schema:
+        type: string
+        format: date
+        example: '2026-03-01'
+      description: Required only when `preset=custom`.
+    StatsEndDate:
+      in: query
+      name: end_date
+      required: false
+      schema:
+        type: string
+        format: date
+        example: '2026-03-07'
+      description: Required only when `preset=custom`.
+    ProjectSongId:
+      in: path
+      name: projectSongId
+      required: true
+      schema: { type: integer }
+    SetlistId:
+      in: path
+      name: setlistId
+      required: true
+      schema: { type: integer }
+    SetId:
+      in: path
+      name: setId
+      required: true
+      schema: { type: integer }
+    ShareToken:
+      in: path
+      name: shareToken
+      required: true
+      schema: { type: string }
+    ChartId:
+      in: path
+      name: chartId
+      required: true
+      schema: { type: integer }
+    Page:
+      in: path
+      name: page
+      required: true
+      schema: { type: integer, minimum: 1 }
+    ProjectSlug:
+      in: path
+      name: projectSlug
+      required: true
+      schema: { type: string }
+
+  schemas:
+    AuthLoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          maxLength: 255
+        device_name:
+          type: string
+          maxLength: 255
+          default: api
+    AuthForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+    AuthResetPasswordRequest:
+      type: object
+      required: [token, email, password, password_confirmation]
+      properties:
+        token: { type: string }
+        email:
+          type: string
+          format: email
+        password: { type: string }
+        password_confirmation: { type: string }
+    AuthPasswordUpdateRequest:
+      type: object
+      required: [current_password, password, password_confirmation]
+      properties:
+        current_password: { type: string }
+        password: { type: string }
+        password_confirmation: { type: string }
+    AuthProfileUpdateRequest:
+      type: object
+      properties:
+        instrument_type:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/InstrumentType'
+    InstrumentType:
+      type: string
+      enum:
+        - vocals
+        - guitar
+        - bass
+        - piano
+        - violin
+        - trumpet
+        - trombone
+        - saxophone
+        - drums
+        - keyboard
+        - harmonica
+        - mandolin
+        - banjo
+        - ukulele
+        - percussion
+    AuthUser:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email:
+          type: string
+          format: email
+        instrument_type:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/InstrumentType'
+    AuthAccessBundle:
+      type: object
+      properties:
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+    AuthLoginResponse:
+      type: object
+      properties:
+        token: { type: string }
+        accessBundle:
+          $ref: '#/components/schemas/AuthAccessBundle'
+        user:
+          $ref: '#/components/schemas/AuthUser'
+    AuthMessageResponse:
+      type: object
+      properties:
+        message: { type: string }
+    AuthUserResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/AuthUser'
+    AuthUserMessageResponse:
+      type: object
+      properties:
+        message: { type: string }
+        user:
+          $ref: '#/components/schemas/AuthUser'
+    ProjectOwner:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+    ProjectCollaboratorOwner:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string, format: email }
+        role:
+          type: string
+          enum: [owner]
+    ProjectMemberUser:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string, format: email }
+    ProjectMember:
+      type: object
+      properties:
+        id: { type: integer }
+        user_id: { type: integer }
+        role:
+          type: string
+          enum: [member, readonly]
+        joined_at:
+          type: string
+          format: date-time
+          nullable: true
+        user:
+          $ref: '#/components/schemas/ProjectMemberUser'
+    ProjectMembersPayload:
+      type: object
+      properties:
+        owner:
+          $ref: '#/components/schemas/ProjectCollaboratorOwner'
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectMember'
+    ProjectMembersResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ProjectMembersPayload'
+    ProjectMemberInviteRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+    ProjectMemberMessageResponse:
+      type: object
+      properties:
+        message: { type: string }
+        member:
+          $ref: '#/components/schemas/ProjectMember'
+    Project:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        owner_user_id: { type: integer }
+        performer_info_url: { type: string, nullable: true }
+        performer_profile_image_url: { type: string, nullable: true }
+        min_tip_cents:
+          type: integer
+          minimum: 0
+          description: Minimum tip amount when `is_accepting_tips=true`, rounded up to a whole-dollar cent value on write.
+        quick_tip_amounts_cents:
+          type: array
+          minItems: 3
+          maxItems: 3
+          description: Exactly three whole-dollar cent values in descending display order for the audience request quick-tip buttons.
+          items:
+            type: integer
+            minimum: 100
+            multipleOf: 100
+        is_accepting_requests:
+          type: boolean
+          description: |
+            Performer request gate. Backend may auto-enable this when payout
+            status transitions to `enabled`, and auto-disable it when payout
+            status regresses from `enabled`.
+        is_accepting_tips:
+          type: boolean
+          description: |
+            Tip gate for public audience flows. When `false`, requests remain
+            available with `tip_amount_cents=0`, tip-only support is disabled,
+            and payout setup is not required to keep requests open.
+        is_accepting_original_requests: { type: boolean }
+        show_persistent_queue_strip: { type: boolean }
+        chart_viewport_prefs:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Deprecated project-scoped viewport blob.
+        payout_setup_complete: { type: boolean }
+        payout_account_status:
+          type: string
+          enum: [not_started, pending, enabled, restricted]
+        payout_status_reason: { type: string, nullable: true }
+        entitlements:
+          $ref: '#/components/schemas/ProjectEntitlements'
+        owner:
+          allOf:
+            - $ref: '#/components/schemas/ProjectOwner'
+          nullable: true
+    ProjectEntitlements:
+      type: object
+      properties:
+        plan_code: { type: string, example: pro_monthly }
+        plan_tier:
+          type: string
+          enum: [free, pro, veteran]
+        repertoire_song_limit:
+          type: integer
+          nullable: true
+          description: Null means the current plan does not cap repertoire size.
+        single_chart_upload_limit_bytes: { type: integer, example: 2097152 }
+        bulk_chart_upload_limit_bytes: { type: integer, example: 2097152 }
+        bulk_chart_file_limit: { type: integer, example: 20 }
+        ai_interactive_per_minute: { type: integer, example: 10 }
+        bulk_ai_window_limit: { type: integer, example: 500 }
+        bulk_ai_window_hours: { type: integer, example: 6 }
+        can_use_public_requests: { type: boolean }
+        can_access_queue: { type: boolean }
+        can_access_history: { type: boolean }
+        can_view_owner_stats: { type: boolean }
+        can_view_wallet: { type: boolean }
+    ProjectCollectionResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+    ProjectMessageResponse:
+      type: object
+      properties:
+        message: { type: string }
+        project:
+          $ref: '#/components/schemas/Project'
+    ProjectUpdateRequest:
+      type: object
+      properties:
+        name: { type: string, maxLength: 255 }
+        performer_info_url:
+          type: string
+          nullable: true
+          maxLength: 2048
+        min_tip_cents:
+          type: integer
+          minimum: 0
+          description: Rounded up to the nearest whole-dollar amount before persistence.
+        quick_tip_amounts_cents:
+          type: array
+          minItems: 3
+          maxItems: 3
+          description: Exactly three whole-dollar cent values in descending display order for the audience request quick-tip buttons.
+          items:
+            type: integer
+            minimum: 100
+            multipleOf: 100
+        is_accepting_requests: { type: boolean }
+        is_accepting_tips: { type: boolean }
+        is_accepting_original_requests: { type: boolean }
+        show_persistent_queue_strip: { type: boolean }
+        remove_performer_profile_image: { type: boolean }
+        chart_viewport_prefs:
+          type: object
+          nullable: true
+          additionalProperties:
+            type: object
+            properties:
+              zoom_scale: { type: number }
+              offset_dx: { type: number }
+              offset_dy: { type: number }
+    PayoutAccount:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [not_started, pending, enabled, restricted]
+        setup_complete: { type: boolean }
+        status_reason: { type: string, nullable: true }
+        stripe_account_id: { type: string, nullable: true }
+        charges_enabled: { type: boolean }
+        payouts_enabled: { type: boolean }
+        requirements_currently_due:
+          type: array
+          items: { type: string }
+        requirements_past_due:
+          type: array
+          items: { type: string }
+    PayoutAccountResponse:
+      type: object
+      properties:
+        payout_account:
+          $ref: '#/components/schemas/PayoutAccount'
+    PayoutAccountLinkResponse:
+      type: object
+      properties:
+        url: { type: string, format: uri }
+        link_type:
+          type: string
+          enum: [onboarding, dashboard]
+        payout_account:
+          $ref: '#/components/schemas/PayoutAccount'
+    PayoutSetupIncompleteError:
+      type: object
+      properties:
+        code:
+          type: string
+          enum: [payout_setup_incomplete]
+        message: { type: string }
+    FeatureRequiresProError:
+      type: object
+      properties:
+        code:
+          type: string
+          enum: [feature_requires_pro]
+        message: { type: string }
+    RepertoireLimitError:
+      type: object
+      properties:
+        code:
+          type: string
+          enum: [repertoire_limit_reached]
+        message: { type: string }
+        project_id: { type: integer }
+        repertoire_song_limit: { type: integer }
+    AccountUsageResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/AccountUsage'
+    AccountUsage:
+      type: object
+      properties:
+        plan:
+          $ref: '#/components/schemas/AccountUsagePlan'
+        storage:
+          $ref: '#/components/schemas/AccountUsageStorage'
+        ai:
+          $ref: '#/components/schemas/AccountUsageAi'
+        review:
+          $ref: '#/components/schemas/AccountUsageReview'
+        activity:
+          $ref: '#/components/schemas/AccountUsageActivity'
+        warnings:
+          type: array
+          items: { type: string }
+    AccountUsagePlan:
+      type: object
+      properties:
+        code: { type: string, example: pro_monthly }
+        tier:
+          type: string
+          enum: [free, pro, veteran]
+    AccountUsageStorage:
+      type: object
+      properties:
+        used_bytes: { type: integer }
+        chart_pdf_bytes: { type: integer }
+        chart_render_bytes: { type: integer }
+        performer_image_bytes: { type: integer }
+        status:
+          type: string
+          enum: [ok, warning, under_review, blocked]
+        hard_limit_bytes: { type: integer, nullable: true }
+        warning_threshold_bytes: { type: integer, nullable: true }
+        review_threshold_bytes: { type: integer, nullable: true }
+        block_threshold_bytes: { type: integer, nullable: true }
+    AccountUsageAi:
+      type: object
+      properties:
+        operations_used: { type: integer }
+        estimated_cost_micros: { type: integer }
+        estimated_cost_usd: { type: number, format: float }
+        status:
+          type: string
+          enum: [ok, warning, blocked]
+        hard_limit: { type: integer, nullable: true }
+        warning_limits:
+          type: array
+          items: { type: integer }
+        block_limit: { type: integer, nullable: true }
+        bulk_window_limit: { type: integer }
+        bulk_window_hours: { type: integer }
+        bulk_window_used: { type: integer }
+        current_month_started_at:
+          type: string
+          format: date-time
+    AccountUsageReview:
+      type: object
+      properties:
+        state:
+          type: string
+          enum: [clear, under_review, blocked]
+        reason: { type: string, nullable: true }
+        blocked_at:
+          type: string
+          format: date-time
+          nullable: true
+    AccountUsageActivity:
+      type: object
+      properties:
+        last_activity_at:
+          type: string
+          format: date-time
+          nullable: true
+        inactivity_warning_sent_at:
+          type: string
+          format: date-time
+          nullable: true
+        archived_render_images_at:
+          type: string
+          format: date-time
+          nullable: true
+    StripeBalanceBucket:
+      type: object
+      properties:
+        currency: { type: string }
+        amount_cents: { type: integer }
+    StripeBalanceSummary:
+      type: object
+      properties:
+        available:
+          type: array
+          items:
+            $ref: '#/components/schemas/StripeBalanceBucket'
+        pending:
+          type: array
+          items:
+            $ref: '#/components/schemas/StripeBalanceBucket'
+        available_total_cents: { type: integer }
+        pending_total_cents: { type: integer }
+        retrieved_at: { type: string, format: date-time }
+    ProjectWalletEarnings:
+      type: object
+      properties:
+        total_tip_amount_cents: { type: integer }
+        paid_request_count: { type: integer }
+        active_queue_tip_amount_cents: { type: integer }
+        active_queue_request_count: { type: integer }
+        active_session_tip_amount_cents: { type: integer }
+        sessionless_tip_amount_cents: { type: integer }
+    ProjectWallet:
+      type: object
+      properties:
+        scope:
+          type: string
+          enum: [account_level]
+        currency: { type: string, enum: [usd] }
+        stripe_balance:
+          $ref: '#/components/schemas/StripeBalanceSummary'
+        project_earnings:
+          $ref: '#/components/schemas/ProjectWalletEarnings'
+    ProjectWalletResponse:
+      type: object
+      properties:
+        wallet:
+          $ref: '#/components/schemas/ProjectWallet'
+        payout_account:
+          $ref: '#/components/schemas/PayoutAccount'
+    StatsTimelinePreset:
+      type: string
+      enum:
+        - today
+        - yesterday
+        - this_week
+        - last_week
+        - this_month
+        - last_month
+        - this_year
+        - last_year
+        - all_time
+        - custom
+    ProjectStatsPeriod:
+      type: object
+      properties:
+        preset:
+          $ref: '#/components/schemas/StatsTimelinePreset'
+        timezone: { type: string, example: America/Denver }
+        local_start_date: { type: string, example: '2026-03-09' }
+        local_end_date: { type: string, example: '2026-03-15' }
+        window_start_utc: { type: string, format: date-time }
+        window_end_utc: { type: string, format: date-time }
+        generated_at: { type: string, format: date-time }
+    ProjectStatsMoney:
+      type: object
+      properties:
+        gross_tip_amount_cents: { type: integer }
+        fee_amount_cents: { type: integer }
+        net_tip_amount_cents: { type: integer }
+        cash_tip_amount_cents: { type: integer, default: 0 }
+    ProjectStatsCounts:
+      type: object
+      properties:
+        request_count: { type: integer }
+        played_count: { type: integer }
+    ProjectStatsRequestRanking:
+      type: object
+      properties:
+        song_id: { type: integer }
+        title: { type: string }
+        artist: { type: string }
+        request_count: { type: integer }
+        net_tip_amount_cents: { type: integer }
+    ProjectStatsPlayedRanking:
+      type: object
+      properties:
+        song_id: { type: integer }
+        title: { type: string }
+        artist: { type: string }
+        played_count: { type: integer }
+    ProjectStatsHighlights:
+      type: object
+      properties:
+        most_requested:
+          allOf:
+            - $ref: '#/components/schemas/ProjectStatsRequestRanking'
+          nullable: true
+        highest_earning:
+          allOf:
+            - $ref: '#/components/schemas/ProjectStatsRequestRanking'
+          nullable: true
+    ProjectStatsRankings:
+      type: object
+      properties:
+        most_played:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectStatsPlayedRanking'
+        most_requested:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectStatsRequestRanking'
+        highest_earning:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectStatsRequestRanking'
+    ProjectStatsBestDayRecord:
+      type: object
+      properties:
+        gross_tip_amount_cents: { type: integer }
+        local_date: { type: string, format: date }
+        timezone: { type: string, example: America/Denver }
+        is_current_period_record: { type: boolean }
+    ProjectStatsRecords:
+      type: object
+      properties:
+        best_day:
+          allOf:
+            - $ref: '#/components/schemas/ProjectStatsBestDayRecord'
+          nullable: true
+    ProjectStatsRewardsGifted:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of rewards gifted in the reporting window.
+        rewards:
+          type: array
+          items:
+            type: object
+            properties:
+              reward_threshold_id: { type: integer }
+              reward_label: { type: string }
+              reward_icon: { type: string }
+              count: { type: integer }
+    PaymentMethodBreakdownEntry:
+      type: object
+      properties:
+        method:
+          type: string
+          description: Payment method type (e.g. card, apple_pay, google_pay, cash, unknown).
+          example: apple_pay
+        count:
+          type: integer
+          description: Number of tips using this payment method in the reporting window.
+          example: 5
+    ProjectStatsResponse:
+      type: object
+      properties:
+        period:
+          $ref: '#/components/schemas/ProjectStatsPeriod'
+        money:
+          $ref: '#/components/schemas/ProjectStatsMoney'
+        counts:
+          $ref: '#/components/schemas/ProjectStatsCounts'
+        highlights:
+          $ref: '#/components/schemas/ProjectStatsHighlights'
+        rankings:
+          $ref: '#/components/schemas/ProjectStatsRankings'
+        records:
+          $ref: '#/components/schemas/ProjectStatsRecords'
+        rewards_gifted:
+          $ref: '#/components/schemas/ProjectStatsRewardsGifted'
+        payment_method_breakdown:
+          type: array
+          description: Count of tips grouped by payment method type for the reporting window.
+          items:
+            $ref: '#/components/schemas/PaymentMethodBreakdownEntry'
+    SongRequestStatus:
+      type: string
+      enum: [active, played]
+    QueueRequest:
+      type: object
+      properties:
+        id: { type: integer }
+        audience_profile_id: { type: integer, nullable: true }
+        performance_session_id: { type: integer, nullable: true }
+        song:
+          $ref: '#/components/schemas/SongSummary'
+        tip_amount_cents: { type: integer }
+        tip_amount_dollars: { type: string }
+        status:
+          $ref: '#/components/schemas/SongRequestStatus'
+        requester_name: { type: string, nullable: true }
+        note: { type: string, nullable: true }
+        played_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+    QueueDailyRecordEvent:
+      type: object
+      properties:
+        event_id: { type: string }
+        gross_tip_amount_cents: { type: integer }
+        local_date: { type: string, format: date }
+        timezone: { type: string, example: America/Denver }
+    QueueCollectionMeta:
+      type: object
+      properties:
+        daily_record_event:
+          allOf:
+            - $ref: '#/components/schemas/QueueDailyRecordEvent'
+          nullable: true
+    QueueCollectionResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/QueueRequest'
+        meta:
+          $ref: '#/components/schemas/QueueCollectionMeta'
+    RequestHistoryCollectionResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/QueueRequest'
+        links:
+          type: object
+          additionalProperties: true
+        meta:
+          type: object
+          additionalProperties: true
+    ManualQueueItemRequest:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [custom, repertoire_song, original]
+        custom_title:
+          type: string
+          nullable: true
+        custom_artist:
+          type: string
+          nullable: true
+        song_id:
+          type: integer
+          nullable: true
+        tip_amount_cents:
+          type: integer
+          nullable: true
+        note:
+          type: string
+          nullable: true
+    ManualQueueItemResponse:
+      type: object
+      properties:
+        message: { type: string }
+        request:
+          $ref: '#/components/schemas/QueueRequest'
+    SessionWalletItem:
+      type: object
+      properties:
+        id: { type: integer }
+        mode:
+          type: string
+          enum: [manual, smart]
+          nullable: true
+        is_active: { type: boolean }
+        started_at: { type: string, format: date-time, nullable: true }
+        ended_at: { type: string, format: date-time, nullable: true }
+        paid_request_count: { type: integer }
+        total_tip_amount_cents: { type: integer }
+    SessionWalletCollectionResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SessionWalletItem'
+        meta:
+          type: object
+          properties:
+            current_page: { type: integer }
+            last_page: { type: integer }
+            per_page: { type: integer }
+            total: { type: integer }
+        links:
+          type: object
+          properties:
+            first: { type: string, nullable: true }
+            last: { type: string, nullable: true }
+            prev: { type: string, nullable: true }
+            next: { type: string, nullable: true }
+    PayoutHistoryItem:
+      type: object
+      properties:
+        id: { type: string }
+        amount_cents: { type: integer }
+        currency: { type: string }
+        status:
+          type: string
+          enum: [pending, in_transit, paid, failed, canceled]
+        method: { type: string }
+        type: { type: string }
+        description: { type: string, nullable: true }
+        arrival_date: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time, nullable: true }
+        failure_code: { type: string, nullable: true }
+        failure_message: { type: string, nullable: true }
+    PayoutHistoryResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayoutHistoryItem'
+        meta:
+          type: object
+          properties:
+            limit: { type: integer }
+            status: { type: string, nullable: true }
+            has_more: { type: boolean }
+        payout_account:
+          $ref: '#/components/schemas/PayoutAccount'
+    BulkImportSongResult:
+      type: object
+      properties:
+        filename: { type: string, nullable: true }
+        title: { type: string, nullable: true }
+        artist: { type: string, nullable: true }
+        action:
+          type: string
+          enum: [imported, duplicate, queued, deferred, limit_reached]
+        chart_id: { type: integer, nullable: true }
+        song_id: { type: integer, nullable: true }
+        duplicate_of: { type: string, nullable: true }
+        message: { type: string, nullable: true }
+    BulkImportResponse:
+      type: object
+      properties:
+        message: { type: string }
+        imported: { type: integer }
+        queued: { type: integer }
+        duplicates: { type: integer }
+        deferred: { type: integer }
+        limit_reached: { type: integer }
+        songs:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkImportSongResult'
+    ImageImportResponse:
+      type: object
+      properties:
+        message: { type: string }
+        extracted: { type: integer }
+        imported: { type: integer }
+        duplicates: { type: integer }
+        limit_reached: { type: integer }
+        songs:
+          type: array
+          items:
+            type: object
+            properties:
+              title: { type: string }
+              artist: { type: string }
+              action:
+                type: string
+                enum: [imported, duplicate, limit_reached]
+              song_id: { type: integer, nullable: true }
+              duplicate_of: { type: string, nullable: true }
+    AppPlatform:
+      type: string
+      enum: [ios, android, macos, windows, linux]
+    AppVersionPolicy:
+      type: object
+      required:
+        [
+          platform,
+          latest_version,
+          latest_build_number,
+          store_url,
+          archive_url,
+        ]
+      properties:
+        platform:
+          $ref: '#/components/schemas/AppPlatform'
+        latest_version:
+          type: string
+          description: Latest semantic version in `x.y.z` format.
+        latest_build_number:
+          type: integer
+          description: Build number compared after `latest_version` matches.
+        store_url:
+          type: string
+          format: uri
+          nullable: true
+          description: Required for mobile policies and null for desktop policies.
+        archive_url:
+          type: string
+          format: uri
+          nullable: true
+          description: Required for desktop policies and null for mobile policies.
+    PublicRequestCreateResponse:
+      type: object
+      properties:
+        request_id: { type: integer, nullable: true }
+        client_secret: { type: string, nullable: true }
+        payment_intent_id: { type: string, nullable: true }
+        requires_payment: { type: boolean }
+        stripe_account_id:
+          type: string
+          nullable: true
+          description: Present when `requires_payment=true`.
+    SongSummary:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        artist: { type: string }
+    SongTheme:
+      type: string
+      enum:
+        [
+          love,
+          party,
+          worship,
+          story,
+          st_patricks,
+          christmas,
+          halloween,
+          patriotic,
+        ]
+    RepertoireSong:
+      type: object
+      properties:
+        id: { type: integer }
+        title:
+          type: string
+          description: Project-specific display title
+        artist:
+          type: string
+          description: Project-specific display artist
+        project_id: { type: integer }
+        song_id: { type: integer }
+        version_label:
+          type: string
+          nullable: true
+          description: "null for primary/default version, non-empty string for alternates"
+        theme:
+          allOf:
+            - $ref: '#/components/schemas/SongTheme'
+          nullable: true
+        instrumental: { type: boolean }
+        is_public: { type: boolean, default: true }
+        energy_level: { type: string, nullable: true }
+        era: { type: string, nullable: true }
+        genre: { type: string, nullable: true }
+        song:
+          $ref: '#/components/schemas/SongSummary'
+        highest_active_tip_cents:
+          type: integer
+          nullable: true
+        performed_musical_key: { type: string, nullable: true }
+        original_musical_key: { type: string, nullable: true }
+        tuning: { type: string, nullable: true }
+        capo: { type: integer, nullable: true }
+        notes: { type: string, nullable: true }
+        duration_in_seconds: { type: integer, nullable: true }
+        needs_improvement: { type: boolean }
+        performance_count: { type: integer }
+        request_count:
+          type: integer
+          description: Present on the authenticated repertoire list response.
+        total_tip_amount_cents:
+          type: integer
+          description: Present on the authenticated repertoire list response.
+        last_performed_at:
+          type: string
+          format: date-time
+          nullable: true
+    SingleRepertoireResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/RepertoireSong'
+        meta:
+          type: object
+          additionalProperties: true
+    PaginatedRepertoireResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RepertoireSong'
+        meta:
+          type: object
+          additionalProperties: true
+    RepertoireUpsertRequest:
+      type: object
+      properties:
+        song_id: { type: integer, nullable: true }
+        title: { type: string, nullable: true }
+        artist: { type: string, nullable: true }
+        version_label:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: "Rename the version label (only on update)"
+        theme:
+          allOf:
+            - $ref: '#/components/schemas/SongTheme'
+          nullable: true
+        instrumental: { type: boolean, nullable: true }
+        is_public: { type: boolean, nullable: true }
+        energy_level: { type: string, nullable: true }
+        era: { type: string, nullable: true }
+        genre: { type: string, nullable: true }
+        performed_musical_key: { type: string, nullable: true }
+        original_musical_key: { type: string, nullable: true }
+        tuning: { type: string, nullable: true }
+        capo: { type: integer, nullable: true }
+        notes:
+          type: string
+          nullable: true
+          maxLength: 3000
+        duration_in_seconds: { type: integer, nullable: true }
+    SetCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          maxLength: 255
+          description: If omitted or blank, backend defaults to "Set N".
+        order_index:
+          type: integer
+          nullable: true
+    AiSetGenerateRequest:
+      type: object
+      required: [sets]
+      properties:
+        sets:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            type: object
+            required: [prompt]
+            properties:
+              name:
+                type: string
+                nullable: true
+                maxLength: 255
+                description: If omitted or blank, backend defaults to "Set N".
+              prompt:
+                type: string
+                minLength: 3
+                maxLength: 500
+                description: Natural language description of the desired set vibe, including desired song count.
+    AiSetGenerateResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SetlistSetResource'
+        meta:
+          type: object
+          properties:
+            generation:
+              type: object
+              properties:
+                generation_version: { type: string }
+                provider: { type: string }
+                total_sets: { type: integer }
+                total_songs_placed: { type: integer }
+    SetlistSongResource:
+      type: object
+      properties:
+        id: { type: integer }
+        set_id: { type: integer }
+        project_song_id:
+          type: integer
+          nullable: true
+          description: Null when the set entry is a set note instead of a repertoire song.
+        order_index: { type: integer }
+        notes: { type: string, nullable: true }
+        color_hex:
+          type: string
+          nullable: true
+          pattern: '^#[0-9A-Fa-f]{6}$'
+          description: Null means use the default dark grey set-entry indicator.
+        song:
+          allOf:
+            - $ref: '#/components/schemas/SongSummary'
+          nullable: true
+          description: Null when the set entry is a set note.
+    SetlistSetResource:
+      type: object
+      properties:
+        id: { type: integer }
+        setlist_id: { type: integer }
+        name: { type: string }
+        order_index: { type: integer }
+        songs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SetlistSongResource'
+    SetlistResource:
+      type: object
+      properties:
+        id: { type: integer }
+        project_id: { type: integer }
+        name: { type: string }
+        notes: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        generation_meta:
+          type: object
+          nullable: true
+          additionalProperties: true
+        sets:
+          type: array
+          items:
+            $ref: '#/components/schemas/SetlistSetResource'
+    SetlistShareLink:
+      type: object
+      properties:
+        project_id: { type: integer }
+        setlist_id: { type: integer }
+        token: { type: string }
+        share_url: { type: string, format: uri }
+        deep_link_url: { type: string, format: uri }
+    SetlistShareLinkResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/SetlistShareLink'
+    SharedSetlistAcceptance:
+      type: object
+      properties:
+        project:
+          $ref: '#/components/schemas/Project'
+        setlist:
+          $ref: '#/components/schemas/SetlistResource'
+        was_already_accepted: { type: boolean }
+    SharedSetlistAcceptanceResponse:
+      type: object
+      properties:
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/SharedSetlistAcceptance'
+    PerformanceSessionResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          nullable: true
+          properties:
+            id: { type: integer }
+            project_id: { type: integer }
+            setlist_id: { type: integer, nullable: true }
+            mode:
+              type: string
+              enum: [manual, smart]
+            is_active: { type: boolean }
+            started_at: { type: string, format: date-time, nullable: true }
+            ended_at: { type: string, format: date-time, nullable: true }
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id: { type: integer }
+                  project_song_id: { type: integer }
+                  status:
+                    type: string
+                    enum: [pending, performed, skipped]
+                  order_index: { type: integer }
+                  performed_order_index: { type: integer, nullable: true }
+        meta:
+          type: object
+          additionalProperties: true
+    ChartSongSummary:
+      type: object
+      nullable: true
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        artist: { type: string }
+    ChartResource:
+      type: object
+      properties:
+        id: { type: integer }
+        song:
+          $ref: '#/components/schemas/ChartSongSummary'
+        project_id: { type: integer }
+        has_renders: { type: boolean }
+        page_count: { type: integer, minimum: 0 }
+        source_type:
+          type: string
+          nullable: true
+          enum: [uploaded, ai_generated]
+        import_status:
+          type: string
+          nullable: true
+          enum: [generating, identifying, identified, failed]
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time, nullable: true }
+    ChartResponse:
+      type: object
+      properties:
+        message: { type: string }
+        chart:
+          $ref: '#/components/schemas/ChartResource'
+    ChartCollectionResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartResource'
+        links:
+          type: object
+          additionalProperties: true
+        meta:
+          type: object
+          additionalProperties: true
+    ChartRenderStatus:
+      type: object
+      properties:
+        chart_id: { type: integer }
+        status:
+          type: string
+          enum: [ready, pending, failed]
+        ready: { type: boolean }
+        pending: { type: boolean }
+        failure_reason:
+          type: string
+          nullable: true
+          enum: [source_pdf_missing, render_file_missing, render_metadata_inconsistent]
+        page_count: { type: integer, minimum: 0 }
+        render_count: { type: integer, minimum: 0 }
+        expected_render_count: { type: integer, minimum: 0, nullable: true }
+        has_renders: { type: boolean }
+        missing_render_file_count: { type: integer, minimum: 0 }
+    CashTipResource:
+      type: object
+      properties:
+        id: { type: integer }
+        project_id: { type: integer }
+        amount_cents: { type: integer }
+        local_date: { type: string, format: date, example: '2026-03-15' }
+        timezone: { type: string, example: America/Denver }
+        note: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+    StoreCashTipRequest:
+      type: object
+      required: [amount_cents, local_date, timezone]
+      properties:
+        amount_cents: { type: integer, minimum: 1 }
+        local_date: { type: string, format: date, example: '2026-03-15' }
+        timezone: { type: string, example: America/Denver }
+        note: { type: string, maxLength: 255, nullable: true }
+    CashTipResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CashTipResource'
+    CashTipCollectionResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CashTipResource'
+        links:
+          type: object
+          additionalProperties: true
+        meta:
+          type: object
+          additionalProperties: true

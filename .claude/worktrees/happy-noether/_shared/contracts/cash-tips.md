@@ -1,0 +1,214 @@
+# Cash Tips API Contracts
+
+## Auth and scope
+
+- All endpoints below require `Authorization: Bearer <token>`.
+- All endpoints are performer-scoped and project-scoped via `{project_id}`.
+- Route prefix: `/api/v1/me/projects/{project_id}`
+- Cash tip management requires the user to own or have access to the project.
+
+---
+
+## Record Cash Tip
+
+- **Method**: `POST`
+- **Path**: `/cash-tips`
+
+Record a cash tip received for a specific local date.
+
+### Headers
+
+- `Idempotency-Key`: UUID v4 (required for safe retries)
+
+### Request body
+
+```json
+{
+  "amount_cents": 2500,
+  "local_date": "2026-03-15",
+  "timezone": "America/Denver",
+  "note": "Wedding gig"
+}
+```
+
+**Validation Rules:**
+- `amount_cents`: required, integer, min 1
+- `local_date`: required, date format `Y-m-d`
+- `timezone`: required, valid IANA timezone identifier
+- `note`: optional, string, max 255 characters
+
+### Success response (`201`)
+
+```json
+{
+  "data": {
+    "id": 1,
+    "project_id": 5,
+    "amount_cents": 2500,
+    "local_date": "2026-03-15",
+    "timezone": "America/Denver",
+    "note": "Wedding gig",
+    "performance_session_id": null,
+    "created_at": "2026-03-15T22:30:00+00:00"
+  }
+}
+```
+
+**Fields:**
+- `performance_session_id`: nullable integer. Links the cash tip to the active performance session, if one existed at recording time. Set server-side; not a client input.
+
+When an active performance session exists for the project at the time of recording, the cash tip is automatically linked to that session (`performance_session_id` is set server-side). This ensures cash tips inherit venue attribution from the ongoing gig. If no active session exists, `performance_session_id` remains `null` -- a new session is NOT auto-created for cash tips.
+
+### Error responses
+
+**User does not have access to project (`404`)**
+
+**Validation failure (`422`):**
+- Invalid `amount_cents`, missing `local_date`, invalid `timezone`, etc.
+
+---
+
+## Update Cash Tip
+
+- **Method**: `PATCH`
+- **Path**: `/cash-tips/{cashTipId}`
+
+Update a previously recorded cash tip.
+
+### Request body
+
+```json
+{
+  "amount_cents": 3000,
+  "local_date": "2026-03-16",
+  "timezone": "America/Denver",
+  "note": "Updated note"
+}
+```
+
+**Validation Rules:**
+- `amount_cents`: required, integer, min 1
+- `local_date`: required, date format `Y-m-d`
+- `timezone`: required, valid IANA timezone identifier
+- `note`: optional, string, max 255 characters
+
+### Success response (`200`)
+
+```json
+{
+  "data": {
+    "id": 1,
+    "project_id": 5,
+    "amount_cents": 3000,
+    "local_date": "2026-03-16",
+    "timezone": "America/Denver",
+    "note": "Updated note",
+    "performance_session_id": null,
+    "created_at": "2026-03-15T22:30:00+00:00"
+  }
+}
+```
+
+**Note:** `performance_session_id` is read-only and not updatable via this endpoint.
+
+### Error responses
+
+**User does not have access to project (`404`)**
+
+**Cash tip not found or does not belong to project (`404`)**
+
+**Validation failure (`422`):**
+- Invalid `amount_cents`, missing `local_date`, invalid `timezone`, etc.
+
+---
+
+## List Cash Tips
+
+- **Method**: `GET`
+- **Path**: `/cash-tips`
+
+List cash tips for the project, optionally filtered by local date.
+
+### Query parameters
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `local_date` | string | Filter to a single date (`YYYY-MM-DD`). Optional. |
+| `per_page` | int | Items per page (default: 50) |
+| `page` | int | Page number |
+
+### Success response (`200`)
+
+Standard paginated shape:
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "project_id": 5,
+      "amount_cents": 2500,
+      "local_date": "2026-03-15",
+      "timezone": "America/Denver",
+      "note": "Wedding gig",
+      "performance_session_id": null,
+      "created_at": "2026-03-15T22:30:00+00:00"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 1,
+    "per_page": 50,
+    "total": 1
+  },
+  "links": {
+    "first": "...",
+    "last": "...",
+    "prev": null,
+    "next": null
+  }
+}
+```
+
+---
+
+## Delete Cash Tip
+
+- **Method**: `DELETE`
+- **Path**: `/cash-tips/{cashTipId}`
+
+Remove a previously recorded cash tip.
+
+### Success response (`200`)
+
+```json
+{
+  "message": "Cash tip deleted."
+}
+```
+
+### Error responses
+
+**User does not have access to project (`404`)**
+
+**Cash tip not found or does not belong to project (`404`)**
+
+---
+
+## Stats Integration
+
+Cash tips are included in the project stats `money` section as a separate
+`cash_tip_amount_cents` field. This amount is **not** included in
+`gross_tip_amount_cents`, `fee_amount_cents`, or `net_tip_amount_cents` — those
+fields reflect only SongTipper (digital/Stripe) request tips.
+
+Tips on manual queue items (`payment_provider = 'none'`) are also included in
+`cash_tip_amount_cents` alongside manually-recorded cash tips. They are excluded
+from the digital tip fields (`gross_tip_amount_cents`, `net_tip_amount_cents`,
+`fee_amount_cents`) and from the tip-amount distribution and fee breakdown.
+
+Cash tips and manual queue item tips **are** included in the best-day record
+calculation, which sums digital request tips, cash tips, and manual queue item
+tips per local date.
+
+Cash tips with a `performance_session_id` inherit venue attribution through the linked session. Cash tips without a session are excluded from per-venue analytics but included in project-wide totals.
