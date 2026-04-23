@@ -1,4 +1,4 @@
-# Song Tipper Architecture & Features Documentation
+# Tipelodeon Architecture & Features Documentation
 
 **Version:** 1.0
 **Last Updated:** February 15, 2026
@@ -27,7 +27,7 @@
 
 ## Overview
 
-**Song Tipper** is a performer-focused application that helps musicians manage their performances, repertoire, and audience interactions in real-time. The platform bridges the gap between performers and their audience through song requests, tips, and live queue management. The mobile application offers a robust and highly optimized way of uploading and manipulating repertoire and associated charts through the use of AI.
+**Tipelodeon** is a performer-focused application that helps musicians manage their performances, repertoire, and audience interactions in real-time. The platform bridges the gap between performers and their audience through song requests, tips, and live queue management. The mobile application offers a robust and highly optimized way of uploading and manipulating repertoire and associated charts through the use of AI.
 
 ### What Problem Does It Solve?
 
@@ -48,22 +48,22 @@
 
 ### Core Value Proposition
 
-Song Tipper consolidates the tedious, fragmented workflows of managing a live act into a single tool. It handles chart and repertoire management, setlist creation, band synchronization, audience requests, and integrated tipping.
+Tipelodeon consolidates the tedious, fragmented workflows of managing a live act into a single tool. It handles chart and repertoire management, setlist creation, band synchronization, audience requests, and integrated tipping.
 
 ---
 
 ## Repository Structure
 
-Song Tipper is an umbrella workspace with three Git repositories:
+Tipelodeon is an umbrella workspace with three Git repositories:
 
-1. Root workspace/meta repo (`songtipper-mono`)
+1. Root workspace/meta repo (`tipelodeon-mono`)
 2. Backend repo (`web/`)
 3. Mobile repo (`mobile_app/`)
 
 `web/` and `mobile_app/` are nested repositories inside the workspace root.
 
 ```
-Song Tipper/                         # Workspace root (songtipper-mono)
+Tipelodeon/                         # Workspace root (tipelodeon-mono)
 ├── _shared/                         # API contracts & documentation (source of truth)
 │   ├── contracts/                   # Endpoint specifications
 │   │   └── setlists.md
@@ -111,22 +111,22 @@ Song Tipper/                         # Workspace root (songtipper-mono)
 
 ### Repository Remotes
 
-- **Monorepo:** `git@github.com:gnarhard/songtipper-mono.git`
+- **Monorepo:** `git@github.com:gnarhard/tipelodeon-mono.git`
 - **Web:** `git@github.com:gnarhard/songtipper_web.git`
 - **Mobile App:** `git@github.com:gnarhard/songtipper_mobile_app.git`
 
 ### Git Worktree Workflow
 
-All development happens from a workspace worktree under the main project checkout (`./songtipper-worktrees/<track_id>`). Run `./scripts/create-worktree <track_id>` from the main `songtipper/` checkout, never by manually typing `git worktree add`, and never by creating a sibling `../songtipper-worktrees` directory. Inside that worktree, `web/` and `mobile_app/` keep their own Git histories/remotes.
+All development happens from a workspace worktree under the main project checkout (`./tipelodeon-worktrees/<track_id>`). Run `./scripts/create-worktree <track_id>` from the main `tipelodeon/` checkout, never by manually typing `git worktree add`, and never by creating a sibling `../tipelodeon-worktrees` directory. Inside that worktree, `web/` and `mobile_app/` keep their own Git histories/remotes.
 
 ```bash
-# From the main songtipper checkout, create a workspace worktree
+# From the main tipelodeon checkout, create a workspace worktree
 repo_root="$(pwd -P)"
 worktree_path="$(./scripts/create-worktree feature-name)"
 
 # Work in the workspace worktree
 cd "$worktree_path"
-pwd  # Must resolve under /songtipper-worktrees/
+pwd  # Must resolve under /tipelodeon-worktrees/
 
 # Commit and open PRs per repo (root, web, mobile_app) as needed.
 # Then clean up:
@@ -179,7 +179,7 @@ git worktree remove "$worktree_path"
 
 ## Architecture Overview
 
-Song Tipper follows a **client-server architecture** with clear separation of concerns:
+Tipelodeon follows a **client-server architecture** with clear separation of concerns:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -594,7 +594,7 @@ Historical record of retired audience achievements. No public audience flow, pro
 
 ## API Architecture
 
-Song Tipper exposes a **RESTful JSON API** at `/api/v1`.
+Tipelodeon exposes a **RESTful JSON API** at `/api/v1`.
 
 ### Design Principles
 
@@ -1242,7 +1242,7 @@ Response:
 
 **Storage Structure:**
 ```
-r2://songtipper/
+r2://tipelodeon/
 ├── performers/
 │   └── {owner_user_id}/
 │       └── profile.png           # Profile images
@@ -1513,11 +1513,11 @@ CHART_RENDER_QUEUE=renders
 
 **Create Worktree:**
 ```bash
-# From the main songtipper checkout
+# From the main tipelodeon checkout
 repo_root="$(pwd -P)"
 worktree_path="$(./scripts/create-worktree feature-name)"
 cd "$worktree_path"
-pwd  # Must resolve under /songtipper-worktrees/
+pwd  # Must resolve under /tipelodeon-worktrees/
 ```
 
 **Work in Worktree:**
@@ -1700,7 +1700,7 @@ flutter test       # Unit/widget tests
 
 ## Conclusion
 
-Song Tipper is a robust, offline-first platform designed to empower performers and delight audiences. Its architecture balances simplicity and scalability, with clear contracts between backend and frontend enabling independent development and rapid iteration.
+Tipelodeon is a robust, offline-first platform designed to empower performers and delight audiences. Its architecture balances simplicity and scalability, with clear contracts between backend and frontend enabling independent development and rapid iteration.
 
 **Key Architectural Strengths:**
 - **Offline-first:** Mobile app works without internet

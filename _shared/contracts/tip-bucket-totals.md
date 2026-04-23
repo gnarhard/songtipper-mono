@@ -218,7 +218,7 @@ Remove a previously recorded cash tip bucket total.
 Cash cash tip bucket totals are included in the project stats `money` section as a
 separate `tip_bucket_total_amount_cents` field. This amount is **not**
 included in `gross_tip_amount_cents`, `fee_amount_cents`, or
-`net_tip_amount_cents` — those fields reflect only SongTipper
+`net_tip_amount_cents` — those fields reflect only Tipelodeon
 (digital/Stripe) request tips.
 
 Tips on manual queue items (`payment_provider = 'none'`) are also included

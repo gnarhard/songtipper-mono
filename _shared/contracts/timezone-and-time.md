@@ -1,6 +1,6 @@
 # Timezone & Time Contract
 
-This is the single source of truth for how Song Tipper stores, transmits,
+This is the single source of truth for how Tipelodeon stores, transmits,
 and displays timestamps and dates across all layers.
 
 ---

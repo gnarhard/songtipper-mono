@@ -1,10 +1,10 @@
-# Song Tipper API Contract - Overview
+# Tipelodeon API Contract - Overview
 
 Base URL: `/api/v1`
 
 ## Detailed Contract Documentation
 
-This document provides a high-level overview of the Song Tipper API. **Detailed endpoint specifications are organized by resource in the [`contracts/`](./contracts/) directory:**
+This document provides a high-level overview of the Tipelodeon API. **Detailed endpoint specifications are organized by resource in the [`contracts/`](./contracts/) directory:**
 
 - **[Authentication](./contracts/auth.md)** - Login, logout, password management
 - **[Projects](./contracts/projects.md)** - Project CRUD and settings

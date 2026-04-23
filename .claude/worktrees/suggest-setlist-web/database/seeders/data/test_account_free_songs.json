@@ -1,0 +1,19 @@
+{
+  "songs": [
+    {"title": "Wonderwall", "artist": "Oasis", "energy_level": "medium", "genre": "Pop", "theme": "love", "performed_musical_key": "Em", "needs_improvement": false, "performance_count": 5, "last_performed_at": "2026-03-10 20:00:00"},
+    {"title": "Sweet Caroline", "artist": "Neil Diamond", "energy_level": "high", "genre": "Pop", "theme": "party", "performed_musical_key": "B", "needs_improvement": false, "performance_count": 8, "last_performed_at": "2026-03-15 21:30:00"},
+    {"title": "Jolene", "artist": "Dolly Parton", "energy_level": "medium", "genre": "Country", "theme": "love", "performed_musical_key": "Am", "needs_improvement": false, "performance_count": 3, "last_performed_at": "2026-03-12 19:00:00"},
+    {"title": "Ho Hey", "artist": "The Lumineers", "energy_level": "medium", "genre": "Pop", "theme": "love", "performed_musical_key": "C", "needs_improvement": false, "performance_count": 4, "last_performed_at": "2026-03-08 20:30:00"},
+    {"title": "Stay With Me", "artist": "Sam Smith", "energy_level": "medium", "genre": "Pop", "theme": "love", "performed_musical_key": "Am", "needs_improvement": false, "performance_count": 6, "last_performed_at": "2026-03-14 21:00:00"},
+    {"title": "Hallelujah", "artist": "Leonard Cohen", "energy_level": "low", "genre": "Folk", "theme": "story", "performed_musical_key": "C", "needs_improvement": false, "performance_count": 7, "last_performed_at": "2026-03-13 22:00:00"},
+    {"title": "Stand By Me", "artist": "Ben E. King", "energy_level": "medium", "genre": "Soul", "theme": "love", "performed_musical_key": "A", "needs_improvement": false, "performance_count": 2, "last_performed_at": "2026-02-28 20:00:00"},
+    {"title": "Brown Eyed Girl", "artist": "Van Morrison", "energy_level": "high", "genre": "Pop", "theme": "love", "performed_musical_key": "G", "needs_improvement": false, "performance_count": 5, "last_performed_at": "2026-03-09 19:30:00"},
+    {"title": "Let Her Go", "artist": "Passenger", "energy_level": "low", "genre": "Pop", "theme": "love", "performed_musical_key": "G", "needs_improvement": false, "performance_count": 3, "last_performed_at": "2026-03-05 21:00:00"},
+    {"title": "I'm Yours", "artist": "Jason Mraz", "energy_level": "medium", "genre": "Pop", "theme": "love", "performed_musical_key": "B", "needs_improvement": false, "performance_count": 4, "last_performed_at": "2026-03-11 20:00:00"},
+    {"title": "Somewhere Over the Rainbow", "artist": "Israel Kamakawiwo'ole", "energy_level": "low", "genre": "Pop", "theme": "story", "performed_musical_key": "C", "needs_improvement": false, "performance_count": 6, "last_performed_at": "2026-03-07 19:00:00"},
+    {"title": "Creep", "artist": "Radiohead", "energy_level": "medium", "genre": "Rock", "theme": "story", "performed_musical_key": "G", "needs_improvement": true, "performance_count": 1, "last_performed_at": "2026-02-20 21:00:00"},
+    {"title": "Free Fallin'", "artist": "Tom Petty & The Heartbreakers", "energy_level": "medium", "genre": "Pop", "theme": "story", "performed_musical_key": "E", "needs_improvement": false, "performance_count": 3, "last_performed_at": "2026-03-06 20:30:00"},
+    {"title": "Blinding Lights", "artist": "The Weeknd", "energy_level": "high", "genre": "Pop", "theme": "party", "performed_musical_key": "Fm", "needs_improvement": true, "performance_count": 1, "last_performed_at": "2026-03-01 22:00:00"},
+    {"title": "Here Comes the Sun", "artist": "The Beatles", "energy_level": "medium", "genre": "Pop", "theme": "love", "performed_musical_key": "A", "needs_improvement": false, "performance_count": 4, "last_performed_at": "2026-03-10 18:00:00"}
+  ]
+}

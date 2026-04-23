@@ -19,7 +19,7 @@ const webCssOutputPath = path.join(
   'resources',
   'css',
   'generated',
-  'songtipper-theme.generated.css',
+  'tipelodeon-theme.generated.css',
 );
 const webJsOutputPath = path.join(
   rootDir,

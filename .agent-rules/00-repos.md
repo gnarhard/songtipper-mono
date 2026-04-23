@@ -4,13 +4,13 @@ Always start from the main branch before doing any work.
 
 ## Repo map
 
-- `songtipper/web/`: Laravel API plus web routes for audience pages and performer signup/login
-- `songtipper/mobile_app/`: Flutter performer app
-- `songtipper/_shared/`: shared contracts, schemas, and docs; source of truth for cross-stack behavior
+- `tipelodeon/web/`: Laravel API plus web routes for audience pages and performer signup/login
+- `tipelodeon/mobile_app/`: Flutter performer app
+- `tipelodeon/_shared/`: shared contracts, schemas, and docs; source of truth for cross-stack behavior
 
 ## Repository remotes
 
-- Monorepo: `git@github.com:gnarhard/songtipper-mono.git`
+- Monorepo: `git@github.com:gnarhard/tipelodeon-mono.git`
 - Web: `git@github.com:gnarhard/songtipper_web.git`
 - Mobile App: `git@github.com:gnarhard/songtipper_mobile_app.git`
 

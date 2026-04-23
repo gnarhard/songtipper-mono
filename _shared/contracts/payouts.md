@@ -108,7 +108,7 @@ Example success:
 - Veteran-only owner endpoint (`403` for non-owners and Pro-owned projects).
 - Returns:
   - account-level Stripe balance (`available`, `pending`, USD totals),
-  - project-level earnings aggregates from SongTipper request/session data,
+  - project-level earnings aggregates from Tipelodeon request/session data,
   - current payout account status snapshot.
 
 Semantics:
