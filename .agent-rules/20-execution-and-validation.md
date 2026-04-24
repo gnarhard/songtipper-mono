@@ -24,6 +24,15 @@
 - When composite indexes, unique constraints, or foreign keys could approach MySQL's 64-character identifier limit, always provide an explicit short name in the repo's abbreviated style such as `_idx`, `_uniq`, or `_fk`.
 - Do not push branches, open PRs, or update PRs while any test in a repo you intend to submit is failing. GitHub submission is blocked until the repo is error-free.
 
+## Lint and static analysis
+
+Zero lint warnings is the standing bar for every repo. Never merge, push, or hand off code that introduces new analyzer, lint, or formatter findings — including line-length warnings, unused imports, `use_build_context_synchronously`, style nits, and anything the configured linter reports.
+
+- Mobile (`app/`): `flutter analyze lib test integration_test` must report zero issues, and `dart format .` must leave no diff. The project enforces `lines_longer_than_80_chars` — wrap long lines by breaking at argument separators, extracting locals, or restructuring widget trees. Do not silence findings with `// ignore:` comments unless the suppression is genuinely unavoidable and justified in a nearby comment.
+- Web (`web/`): `./vendor/bin/pint --test` must pass cleanly. Run `./vendor/bin/pint` before handoff if needed.
+- When you touch a file, fix any pre-existing lint findings in the code you modify rather than leaving them for later.
+- If a rule genuinely does not fit the codebase, change the analyzer config in the same PR that removes the rule — do not scatter per-line ignores.
+
 ## Common commands
 
 Run these from the relevant repo root.
