@@ -140,7 +140,6 @@
       "headingStrong": "#e6e8ee"
     },
     "wave": {
-      "textureAsset": "assets/images/newspaper_texture.webp",
       "textureOpacityLight": 0.08,
       "textureOpacityDark": 0.12,
       "textureTintLight": "#1d2128",
