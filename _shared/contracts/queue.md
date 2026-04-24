@@ -114,11 +114,16 @@ returned. Matching includes both the queue payload and the record-event state.
 
 ---
 
-## Session Linking for Public Requests
+## Session Linking for Requests
 
-When a public request (digital tip) arrives, it is linked to the project's current active performance session if one exists. The request's `performance_session_id` is set to the active session's `id`. If no session is active, `performance_session_id` is `null` — no session is created automatically.
+Every `requests` row is linked to a `performance_session` — the column is NOT NULL. Two rules:
 
-Performers who want public requests tracked against a session must explicitly start one (setlist-based or free-play) before requests arrive.
+- **Performer-initiated writes** (`POST /queue`, `POST /me/requests/{id}/played`, repertoire mark-played) require an active performance session for the project. If none is active, the endpoint returns `409 Conflict` with body `{"error": "no_active_session"}`. The client is expected to prompt the performer to start a session and retry.
+- **Audience-initiated writes** (public request / Stripe webhook) auto-start a `start_source = "audience_auto"` free-play session on the project if none is active. The audience member is never rejected because the performer hasn't started a session — money is never turned away.
+
+If the performer later starts a real session (setlist or free-play) while an `audience_auto` session is active, the existing session is **adopted**: `start_source` flips to `"performer"`, `setlist_id`/`mode`/`location`/`timezone` are written through to the existing row. There is no duplicate session and no orphan writes.
+
+Audience-auto sessions that see no child writes for 30 minutes are ended by the `performances:end-idle-audience` scheduled command (`ended_reason = "inactivity"`).
 
 ---
 
@@ -218,6 +223,17 @@ Manually add an item to the active queue as an authenticated performer/project m
   "message": "This project is not currently accepting original requests."
 }
 ```
+
+**No active performance session (`409`)**
+
+```json
+{
+  "error": "no_active_session",
+  "message": "Start a performance session before adding queue items."
+}
+```
+
+Clients should prompt the performer to start a session and retry.
 
 ---
 

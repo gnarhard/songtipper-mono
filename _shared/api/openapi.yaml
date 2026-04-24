@@ -539,6 +539,12 @@ paths:
                 $ref: '#/components/schemas/FeatureRequiresProError'
         '404':
           description: Not found (user does not have access to the project)
+        '409':
+          description: No active performance session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoActiveSessionError'
         '422':
           description: Validation failed or originals are disabled
 
@@ -2637,7 +2643,7 @@ components:
       properties:
         id: { type: integer }
         audience_profile_id: { type: integer, nullable: true }
-        performance_session_id: { type: integer, nullable: true }
+        performance_session_id: { type: integer }
         song:
           $ref: '#/components/schemas/SongSummary'
         tip_amount_cents: { type: integer }
@@ -3118,9 +3124,25 @@ components:
             mode:
               type: string
               enum: [manual, free_play]
+            start_source:
+              type: string
+              enum: [performer, audience_auto, backfill]
+              description: |
+                How the session was created. `performer` = the performer pressed
+                Start. `audience_auto` = auto-started by the server on the first
+                audience write when no session was active. `backfill` = a
+                synthetic session created by the session-required migration to
+                absorb pre-session data.
+            is_synthetic:
+              type: boolean
+              description: |
+                True for backfill sessions. Synthetic sessions are excluded from
+                stats by default; pass `include_synthetic=true` on the stats
+                endpoint to include them.
             is_active: { type: boolean }
             started_at: { type: string, format: date-time, nullable: true }
             ended_at: { type: string, format: date-time, nullable: true }
+            deleted_at: { type: string, format: date-time, nullable: true }
             items:
               type: array
               items:
@@ -3200,11 +3222,21 @@ components:
         expected_render_count: { type: integer, minimum: 0, nullable: true }
         has_renders: { type: boolean }
         missing_render_file_count: { type: integer, minimum: 0 }
+    NoActiveSessionError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          enum: [no_active_session]
+        message:
+          type: string
     TipBucketTotalResource:
       type: object
       properties:
         id: { type: integer }
         project_id: { type: integer }
+        performance_session_id: { type: integer }
         amount_cents: { type: integer }
         local_date: { type: string, format: date, example: '2026-03-15' }
         timezone: { type: string, example: America/Denver }
