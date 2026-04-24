@@ -4,6 +4,10 @@ These endpoints give the performer visibility into what they have been playing,
 independent of the timeline-filtered stats. They power the "Recent Performances"
 card on the Home screen and the full "Performance History" screen.
 
+## Session required for writes
+
+Every `song_performances` row has a non-null `performance_session_id` — the schema enforces it. Endpoints that log a performance (e.g. `POST /api/v1/me/repertoire/{projectSong}/performances`) require an active performance session for the project; if none is active, the endpoint returns `409 Conflict` with body `{"error": "no_active_session"}`. Clients must prompt the performer to start a session and retry. Synthetic (backfill) and soft-deleted sessions are hidden from default stats — see `performance-sessions.md`.
+
 ## Authentication
 
 All endpoints require a valid Sanctum bearer token. The authenticated user must
@@ -65,7 +69,7 @@ Returns the last 10 song performances for the project, ordered most-recent first
 |---|---|---|
 | `id` | integer | `song_performances.id` |
 | `project_song_id` | integer | The project-song that was performed |
-| `performance_session_id` | integer \| null | The session this performance belongs to, if any |
+| `performance_session_id` | integer | The session this performance belongs to. Every `song_performances` row is linked to a session — the FK is NOT NULL. |
 | `title` | string | Project-specific song title |
 | `artist` | string | Project-specific artist name |
 | `performed_at` | ISO 8601 UTC string | When the performance occurred |
