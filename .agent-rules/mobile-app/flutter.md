@@ -777,19 +777,24 @@ textTheme: const TextTheme(
 
 ### MaxWidthAppBar and content padding
 
-Every routed screen **must** use `MaxWidthAppBar` (from
-`features/shell/presentation/app_shell.dart`) instead of a plain `AppBar`.
+When a routed screen uses an `AppBar`, prefer `MaxWidthAppBar` (from
+`features/shell/presentation/app_shell.dart`) over a plain `AppBar`.
 `MaxWidthAppBar` constrains the toolbar content to `AppTheme.contentMaxWidth`
 on wide screens so that titles and actions don't drift to the screen edges,
 while the background colour still spans the full width.
 
 ```dart
-// Correct
+// Preferred when the screen uses an AppBar
 appBar: const MaxWidthAppBar(title: Text('My Screen')),
 
-// Wrong — plain AppBar breaks the wide-screen layout contract
+// Avoid plain AppBar when the screen would otherwise use a toolbar
 appBar: AppBar(title: const Text('My Screen')),
 ```
+
+Some screens intentionally render no `AppBar` (e.g. they use an inline
+header/controls bar for a chrome-less feel). In that case, `MaxWidthAppBar`
+isn't required — but body content still needs `appContentPadding()` so it
+stays within `AppTheme.contentMaxWidth`.
 
 For scrollable body content, wrap padding with `appContentPadding()` (also
 from `app_shell.dart`) so horizontal insets grow symmetrically on wide screens:
