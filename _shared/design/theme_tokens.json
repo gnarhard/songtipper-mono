@@ -150,18 +150,18 @@
       "backgroundBottomDark": "#1a1d22",
       "ambientLight": "#e4e6eb",
       "ambientDark": "#1a1d22",
-      "ribbonALightStart": "#e4e6eb",
-      "ribbonALightEnd": "#f1f2f5",
-      "ribbonBLightStart": "#ebeef2",
-      "ribbonBLightEnd": "#d4d8de",
-      "ribbonCLightStart": "#f1f2f5",
-      "ribbonCLightEnd": "#c8ccd3",
+      "ribbonALightStart": "#d8dadf",
+      "ribbonALightEnd": "#d8dadf",
+      "ribbonBLightStart": "#c8ccd2",
+      "ribbonBLightEnd": "#c8ccd2",
+      "ribbonCLightStart": "#bcc0c7",
+      "ribbonCLightEnd": "#bcc0c7",
       "ribbonADarkStart": "#343842",
-      "ribbonADarkEnd": "#1a1d22",
+      "ribbonADarkEnd": "#343842",
       "ribbonBDarkStart": "#4a4f59",
-      "ribbonBDarkEnd": "#2c2f36",
+      "ribbonBDarkEnd": "#4a4f59",
       "ribbonCDarkStart": "#23272e",
-      "ribbonCDarkEnd": "#1a1d22"
+      "ribbonCDarkEnd": "#23272e"
     }
   },
   "filledForegroundPairs": {

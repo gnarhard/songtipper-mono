@@ -63,3 +63,38 @@ button. Follow this pattern consistently:
 
 Screens currently following this pattern:
 `RepertoireListScreen`, `PerformScreen` (Previous tab).
+
+## Blurred surface pattern
+
+All scrollable content areas in the app sit over the animated `WaveBackground`.
+To keep painted waves/orbs legible without fighting the foreground UI, wrap the
+content area in a blurred, tinted surface using these exact values:
+
+- `BackdropFilter` with `ImageFilter.blur(sigmaX: 10, sigmaY: 10)`
+- A `ColoredBox` inside the filter with
+  `theme.colorScheme.surface.withAlpha(20)`
+- Clip the filter with `ClipRect` (or `ClipRRect` if the container has rounded
+  corners) so the blur doesn't bleed outside the intended bounds
+
+Canonical shape:
+
+```dart
+ClipRect(
+  child: BackdropFilter(
+    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+    child: ColoredBox(
+      color: theme.colorScheme.surface.withAlpha(20),
+      child: child,
+    ),
+  ),
+)
+```
+
+Apply this once at the outermost content container of each screen or panel
+rather than nesting multiple `BackdropFilter`s — stacking blurs is expensive
+and compounds the tint. Don't introduce a per-screen `sigmaX`/`sigmaY` or tint
+alpha; if a screen needs a different look, revise this rule instead of
+diverging locally.
+
+Examples: `_BlurredColumn` in `setlists_list_screen_cards.dart`, the
+`PreviousPerformances` wrapper in `perform_screen.dart`.

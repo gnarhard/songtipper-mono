@@ -70,7 +70,7 @@ test('theme token generator emits only the pinned theme families and wave colors
   );
   assert.match(
     dartOutput,
-    /static const Color wave_RIBBON_BLIGHT_START = Color\(0xFFEBEEF2\);/,
+    /static const Color wave_RIBBON_BLIGHT_START = Color\(0xFFC8CCD2\);/,
   );
   assert.doesNotMatch(
     dartOutput,
