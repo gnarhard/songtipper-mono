@@ -52,13 +52,19 @@ Setlist routes:
 - `DELETE /setlists/{setlistId}` — permanent delete (prefer archive).
 
 Setlist resource fields:
-- `id`, `project_id`, `name`, `notes`, `folder`, `created_at`,
-  `archived_at`, `generation_meta`, `sets`.
+- `id`, `project_id`, `name`, `notes`, `folder`, `performed_at`,
+  `created_at`, `archived_at`, `generation_meta`, `sets`.
 - `folder`: nullable string (max 255). Setlists with the same `folder`
   value are grouped together in the mobile UI.
+- `performed_at`: nullable ISO-8601 UTC timestamp. Date the setlist is
+  scheduled for or was performed on. Prompted for at creation time and
+  editable inline. May be absent/null on legacy rows.
 - `archived_at`: nullable ISO-8601 UTC timestamp (with `+00:00` offset).
   Non-null means the setlist is archived and hidden from the default list view.
   See [`timezone-and-time.md`](timezone-and-time.md).
+
+Write endpoints accept optional `performed_at` on `POST /setlists` and
+`PUT /setlists/{setlistId}`. Sending `null` on update clears the value.
 
 Removed (breaking change):
 - `POST /setlists/generate-smart`
