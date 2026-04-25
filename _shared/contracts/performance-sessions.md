@@ -18,7 +18,6 @@ A `performance_sessions` row groups every metric (request, song performance, tip
 | `ended_reason` | enum | `"manual"`, `"inactivity"`, `"max_duration"`, `"superseded"`, `"backfill"`. |
 | `deleted_at` | timestamp \| null | Soft-delete timestamp. Sessions are never hard-deleted. |
 | `timezone` / `latitude` / `longitude` | — | Optional. |
-| `gig_type` | enum | |
 | `ai_synopsis`, `ai_synopsis_generated_at`, `performer_notes` | — | |
 
 ## `start_source` semantics
@@ -29,7 +28,7 @@ A `performance_sessions` row groups every metric (request, song performance, tip
 
 ## Adoption
 
-If the performer starts a real session (`POST …/performances/start`) while an `audience_auto` session is already active for the project, the existing session is **adopted** — `start_source` is updated to `"performer"`, and the performer's `setlist_id` / `mode` / `location` / `timezone` / `gig_type` / `started_at` are written through to the same row. No second session is created, and no metric rows are re-pointed. This is the only way a new performer-initiated start returns the same row as an existing active session instead of failing with 409.
+If the performer starts a real session (`POST …/performances/start`) while an `audience_auto` session is already active for the project, the existing session is **adopted** — `start_source` is updated to `"performer"`, and the performer's `setlist_id` / `mode` / `location` / `timezone` / `started_at` are written through to the same row. No second session is created, and no metric rows are re-pointed. This is the only way a new performer-initiated start returns the same row as an existing active session instead of failing with 409.
 
 ## Soft delete
 

@@ -104,7 +104,6 @@ enriched performances that occurred in that session.
       "ended_at": "2026-04-08T23:30:00+00:00",
       "timezone": "America/Denver",
       "location_name": "The Rusty Nail",
-      "gig_type": "public",
       "duration_minutes": 210,
       "song_count": 14,
       "total_tips_cents": 4800,
@@ -164,7 +163,6 @@ enriched performances that occurred in that session.
 | `timezone` | IANA string \| null | The IANA zone name recorded on the session, used for display precedence (session → reporting → device) |
 | `location_id` | integer \| null | Location ID if a location was assigned, otherwise null |
 | `location_name` | string \| null | Location name if a location was assigned, otherwise null |
-| `gig_type` | string \| null | Gig type enum value (e.g. `public`, `private_event`, `open_mic`, `rehearsal`), or null |
 | `mode` | string \| null | Performance mode (e.g. `manual`, `smart`, `free_play`), or null |
 | `setlist_id` | integer \| null | ID of the associated setlist, or null for free-play sessions |
 | `setlist_name` | string \| null | Name of the associated setlist, or null for free-play sessions |

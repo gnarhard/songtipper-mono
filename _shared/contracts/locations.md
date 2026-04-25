@@ -456,7 +456,7 @@ Merge two locations by repointing all `performance_sessions` from the source loc
 - **Path**: `/locations/{locationId}/analytics`
 - **Route prefix**: `/api/v1/me/projects/{project_id}`
 
-Returns personal analytics for a location scoped to the authenticated project. All completed sessions (`is_active=false`, `ended_at` not null) are included regardless of duration, tips, or gig type.
+Returns personal analytics for a location scoped to the authenticated project. All completed sessions (`is_active=false`, `ended_at` not null) are included regardless of duration or tips.
 
 ### Success response (`200`)
 
@@ -506,7 +506,6 @@ Returns all completed (non-active) performance sessions for a specific location,
       "id": 42,
       "started_at": "2026-04-10T20:00:00+00:00",
       "ended_at": "2026-04-10T23:00:00+00:00",
-      "gig_type": "public",
       "song_count": 14
     }
   ]
@@ -520,7 +519,6 @@ Returns all completed (non-active) performance sessions for a specific location,
 | `id` | int | Performance session ID. |
 | `started_at` | ISO 8601 or null | Session start timestamp. |
 | `ended_at` | ISO 8601 or null | Session end timestamp. |
-| `gig_type` | string or null | Gig type enum value (e.g. `public`, `private_event`). |
 | `song_count` | int | Number of `SongPerformance` records logged during this session. |
 
 **Notes:**

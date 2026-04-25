@@ -343,7 +343,6 @@ Routes:
   "timezone": "America/Denver",
   "latitude": 39.7392358,
   "longitude": -104.990251,
-  "gig_type": "public",
   "ended_reason": null,
   "started_at": "2026-04-01T20:00:00+00:00",
   "ended_at": null,
@@ -358,7 +357,6 @@ Routes:
 - `setlist_id`: nullable integer. Null for free-play sessions.
 - `timezone`: IANA timezone string. Required at start.
 - `latitude`, `longitude`: nullable decimals. GPS coordinates of the performance location.
-- `gig_type`: string, one of `public`, `private_event`, `open_mic`, `rehearsal`. Defaults to `public`.
 - `ended_reason`: nullable string, one of `manual`, `inactivity`, `max_duration`, `superseded`. Set when the session ends.
 
 ### Start Performance -- `POST /performances/start`
@@ -374,8 +372,7 @@ Start a new performance session. Two modes are available:
   "location_id": 1,
   "latitude": 39.7392358,
   "longitude": -104.990251,
-  "timezone": "America/Denver",
-  "gig_type": "public"
+  "timezone": "America/Denver"
 }
 ```
 
@@ -385,8 +382,7 @@ Start a new performance session. Two modes are available:
 {
   "mode": "free_play",
   "location_id": 1,
-  "timezone": "America/Denver",
-  "gig_type": "public"
+  "timezone": "America/Denver"
 }
 ```
 
@@ -397,7 +393,6 @@ Start a new performance session. Two modes are available:
 - `latitude`: optional, decimal, -90 to 90.
 - `longitude`: optional, decimal, -180 to 180.
 - `timezone`: required, valid IANA timezone identifier.
-- `gig_type`: optional, string, one of `public`, `private_event`, `open_mic`, `rehearsal`. Defaults to `public`.
 
 **Session conflict:** If any active session already exists for the project, returns `409 Conflict`.
 
@@ -461,7 +456,6 @@ Update fields on a past (inactive) performance session. Use case: post-hoc locat
 ```json
 {
   "location_id": 1,
-  "gig_type": "private_event",
   "timezone": "America/Denver",
   "latitude": 39.7392358,
   "longitude": -104.990251
@@ -471,7 +465,6 @@ Update fields on a past (inactive) performance session. Use case: post-hoc locat
 **Validation Rules:**
 - Only works on inactive sessions (`is_active = false`). Returns `422` on active sessions.
 - `location_id`: optional, nullable integer, must belong to the project.
-- `gig_type`: optional, string, one of `public`, `private_event`, `open_mic`, `rehearsal`.
 - `timezone`: optional, valid IANA timezone identifier.
 - `latitude`: optional, decimal, -90 to 90.
 - `longitude`: optional, decimal, -180 to 180.

@@ -1284,7 +1284,6 @@ paths:
                 location_id: { type: integer, nullable: true }
                 latitude: { type: number, nullable: true }
                 longitude: { type: number, nullable: true }
-                gig_type: { type: string, enum: [public, private] }
                 started_at:
                   type: string
                   format: date-time
