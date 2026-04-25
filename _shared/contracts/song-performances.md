@@ -206,7 +206,7 @@ Each event object has a discriminator field `event_type`. Shared fields present 
 | `tip_bucket_total` | Cash tip bucket total logged by the performer | `tip_bucket_total_id`, `tip_amount_cents` |
 | `tip_bucket_total_updated` | Cash tip bucket total was edited | `tip_bucket_total_id`, `tip_amount_cents` (new value) |
 | `tip_bucket_total_voided` | Cash tip bucket total was deleted | `tip_bucket_total_id`, `tip_amount_cents` (deleted amount) |
-| `reward_claimed` | Audience crossed a reward threshold during the session window | `reward_label`, `reward_icon`, `reward_type`, `threshold_cents`, `audience_name` |
+| `reward_claimed` | Audience crossed a reward threshold during the session window | `performance_session_id`, `reward_label`, `reward_icon`, `reward_type`, `threshold_cents`, `audience_name` |
 | `reward_delivered` | Performer confirmed a reward was physically delivered | `reward_label`, `reward_icon`, `reward_type`, `threshold_cents`, `audience_name` |
 | `reward_used` | Audience redeemed a free_request reward for a specific song | `reward_label`, `reward_icon`, `reward_type`, `project_song_id`, `title`, `artist`, `audience_profile_id`, `audience_name`, `audience_ordinal` |
 | `link_clicked` | Audience member clicked a link on the project page | `link_type`, `audience_profile_id`, `audience_name` |
@@ -236,7 +236,7 @@ Each event object has a discriminator field `event_type`. Shared fields present 
 | `threshold_cents` | integer | Cumulative-tip threshold in cents at which the reward unlocks |
 | `audience_name` | string \| null | Audience member's display name, if known |
 
-**`reward_claimed` vs `reward_delivered`**: `reward_claimed` fires when the audience crosses the threshold (money side). `reward_delivered` fires when the performer taps "Mark as delivered" in the app (physical delivery confirmation). Both events are matched to the session by project + time window, not by `performance_session_id`, so they appear on any session whose time window contains the claim.
+**`reward_claimed` vs `reward_delivered`**: `reward_claimed` fires when the audience crosses the threshold (money side). `reward_delivered` fires when the performer taps "Mark as delivered" in the app (physical delivery confirmation). `reward_claimed` carries the `performance_session_id` of the request that crossed the threshold. `reward_delivered` is still matched to the session by project + time window (it has no `performance_session_id`), so it appears on any session whose time window contains the delivery. Legacy `reward_claimed` rows written before this field was populated also fall back to time-window matching.
 
 **`tip_bucket_total_id`**: Use this FK — not `id` (which is `performance_events.id`) — when calling `/tip-bucket-totals/{id}` endpoints. Null only on legacy rows that pre-date the link.
 
