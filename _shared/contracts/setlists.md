@@ -295,6 +295,9 @@ Set song payload notes:
   - `project_song_id` for a repertoire song entry, or
   - `notes` for a set note entry.
 - Set note entries serialize with `project_song_id = null` and `song = null`.
+- The embedded `song` object on `setlist_songs` exposes `id`, `title`,
+  `artist`, and `duration_in_seconds` (nullable int seconds, sourced from
+  the underlying `Song` record).
 - `PUT /setlists/{setlistId}/sets/{setId}/songs/{songId}` accepts optional
   `notes` and optional nullable `color_hex`.
 - `color_hex` must match `#RRGGBB` when present.
