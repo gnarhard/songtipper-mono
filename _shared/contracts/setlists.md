@@ -443,11 +443,13 @@ the caller cannot access the project.
   `payment_method_breakdown` are scoped to requests with
   `performance_session_id = {sessionId}`.
 - `counts.requests_played_count` is the count of `song_performances`
-  rows with `source = setlist` for the session — songs the artist played
-  that came from a tipped/queued request.
+  rows for the session that match a `requests` row with status `played`
+  on the same `(performance_session_id, song_id)` — songs the artist
+  played that came from a tipped/queued request.
 - `counts.unrequested_plays_count` is the count of `song_performances`
-  rows with `source = repertoire` for the session — songs the artist
-  played that weren't tied to any request.
+  rows for the session with no such matching played `requests` row —
+  songs the artist played that weren't tied to any request. The two
+  counts together sum to every `song_performances` row in the session.
 - `rankings.most_played` is scoped to `song_performances` with
   `performance_session_id = {sessionId}` (so free-play songs count even
   when not tied to requests).
